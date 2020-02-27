@@ -61,7 +61,6 @@ class BeerBot:
         chat_id = update.effective_chat.id
         text = self._parse_beer_to_html(beer)
         context.bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.HTML)
-        context.bot.send_photo(chat_id=chat_id, photo=self._get_beer_image(beer))
 
     def _show_options(self, beers, update: Updater, context: CallbackContext):
         beer_options = [[InlineKeyboardButton(beer.get('name', ''), callback_data=beer.get('name')) for beer in beers]]
@@ -81,12 +80,24 @@ class BeerBot:
         style = raw_beer['style']
         category = raw_beer['category']
         desc = raw_beer['description']
+
+        breweries = raw_beer['breweries']
+        breweries_text = ''
+        for b in breweries:
+            breweries_text = f'{breweries_text}{b["name"]}\n'
+
+        accounts = raw_beer['accounts']
+        accounts_text = ''
+        for b in accounts:
+            accounts_text = f'{accounts_text}{b["name"]} {b["link"]}\n'
+
         text = f'🍺🍺🍺 <b>"{name}"</b> 🍺🍺🍺\n' \
+               f'\n📈 <i>ABV={abv}\n📉 IBU={ibu}</i> \n' \
                f'\n️💅 <b>Style</b>:\n{style}\n' \
                f'\n🗃️ <b>Category</b>:\n{category}\n' \
-               f'\n️🍻 <b>Description</b>:\n{desc}\n' \
-               f'\n📈 <i>ABV={abv}' \
-               f'\n📉 IBU={ibu}</i>'
+               f'\n️✍️ <b>Description</b>:\n{desc}\n' \
+               f'\n️🏠 <b>Breweries</b>:\n{breweries_text}\n' \
+               f'\n️💁‍♂️ <b>More Info</b>:\n{accounts_text}\n'
         return text
 
     def _get_beer_image(self, raw_beer):
