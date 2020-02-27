@@ -7,24 +7,40 @@ class BeerClient:
         self._url = 'https://sandbox-api.brewerydb.com/v2' if testing else 'https://api.brewerydb.com/v2'
         self._timeout = timeout
 
-    def get_random(self):
-        url = f'{self._url}/beer/random?withSocialAccounts=Y&withIngredients=Y&withBreweries=Y&key={BreweryToken}'
+    @staticmethod
+    def _convert(value: bool):
+        return 'Y' if value else 'N'
+
+    def get_random(self, with_social=True, with_ingredients=True, with_breweries=True):
+        url = f'{self._url}/beer/random?' \
+              f'withSocialAccounts={BeerClient._convert(with_social)}&' \
+              f'withIngredients={BeerClient._convert(with_ingredients)}&' \
+              f'withBreweries={BeerClient._convert(with_breweries)}&' \
+              f'key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         data = response.json()
         beer = BeerClient.parse_beer(data.get('data', {}))
         return beer
 
-    def get_by_id(self, id: int):
-        url = f'{self._url}/beer/{id}?withSocialAccounts=Y&withIngredients=Y&withBreweries=Y&key={BreweryToken}'
+    def get_by_id(self, id: int, with_social=True, with_ingredients=True, with_breweries=True):
+        url = f'{self._url}/beer/{id}?' \
+              f'withSocialAccounts={BeerClient._convert(with_social)}&' \
+              f'withIngredients={BeerClient._convert(with_ingredients)}&' \
+              f'withBreweries={BeerClient._convert(with_breweries)}&' \
+              f'key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         data = response.json()
         beer = BeerClient.parse_beer(data.get('data', {}))
         return beer
 
-    def find_by_name(self, name: str):
-        url = f'{self._url}/beers?name={name}&withSocialAccounts=Y&withIngredients=Y&withBreweries=Y&key={BreweryToken}'
+    def find_by_name(self, name: str, with_social=True, with_ingredients=True, with_breweries=True):
+        url = f'{self._url}/beers?name={name}&' \
+              f'withSocialAccounts={BeerClient._convert(with_social)}&' \
+              f'withIngredients={BeerClient._convert(with_ingredients)}&' \
+              f'withBreweries={BeerClient._convert(with_breweries)}&' \
+              f'key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
@@ -34,8 +50,30 @@ class BeerClient:
             beers.append(beer)
         return beers
 
+    def get_adjuncts(self, id: int):
+        url = f'{self._url}/beer/{id}/adjuncts?key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        return json['data']
+
+    def get_ingredients(self, id: int):
+        url = f'{self._url}/beer/{id}/ingredients?key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        return json['data']
+
+    def get_variations(self, id: int):
+        url = f'{self._url}/beer/{id}/variations?key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        return json['data']
+
     @staticmethod
     def parse_beer(data):
+        beer_id = data.get('id', '')
         name = data.get('name', '')
         abv = data.get('abv', None)
         ibu = data.get('ibu', None)
@@ -70,6 +108,7 @@ class BeerClient:
             accounts.append(account)
 
         beer = {
+            'id': beer_id,
             'name': name,
             'abv': abv,
             'ibu': ibu,
