@@ -11,6 +11,13 @@ class BeerClient:
     def _convert(value: bool):
         return 'Y' if value else 'N'
 
+    def check(self):
+        url = f'{self._url}/heartbeat'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        return json['data']
+
     def get_random(self, with_social=True, with_ingredients=True, with_breweries=True):
         url = f'{self._url}/beer/random?' \
               f'withSocialAccounts={BeerClient._convert(with_social)}&' \
@@ -35,7 +42,7 @@ class BeerClient:
         beer = BeerClient.parse_beer(data.get('data', {}))
         return beer
 
-    def find_by_name(self, name: str, with_social=True, with_ingredients=True, with_breweries=True):
+    def get_by_name(self, name: str, with_social=True, with_ingredients=True, with_breweries=True):
         url = f'{self._url}/beers?name={name}&' \
               f'withSocialAccounts={BeerClient._convert(with_social)}&' \
               f'withIngredients={BeerClient._convert(with_ingredients)}&' \
@@ -45,27 +52,43 @@ class BeerClient:
         response.raise_for_status()
         json = response.json()
         beers = []
+        if json['totalResults'] == 0:
+            return beers
         for raw_beer in json['data']:
             beer = BeerClient.parse_beer(raw_beer)
             beers.append(beer)
         return beers
 
-    def get_adjuncts(self, id: int):
-        url = f'{self._url}/beer/{id}/adjuncts?key={BreweryToken}'
+    def get_adjuncts(self, beer_id: int):
+        url = f'{self._url}/beer/{beer_id}/adjuncts?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
 
-    def get_ingredients(self, id: int):
-        url = f'{self._url}/beer/{id}/ingredients?key={BreweryToken}'
+    def get_ingredients(self, beer_id: int):
+        url = f'{self._url}/beer/{beer_id}/ingredients?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
 
-    def get_variations(self, id: int):
-        url = f'{self._url}/beer/{id}/variations?key={BreweryToken}'
+    def get_variations(self, beer_id: int):
+        url = f'{self._url}/beer/{beer_id}/variations?key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        return json['data']
+
+    def get_styles(self):
+        url = f'{self._url}/styles?key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        return json['data']
+
+    def get_style_by_id(self, style_id: int):
+        url = f'{self._url}/styles/{style_id}?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()

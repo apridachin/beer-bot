@@ -30,11 +30,19 @@ class BeerBot:
     def _find_beer(self, update, context):
         user_message = update.message.text
         beer_name = user_message.replace('/find ', '')
-        beers = self._client.find_by_name(beer_name)
+        beers = self._client.get_by_name(beer_name)
+
         if len(beers) > 1:
             self._show_options(beers, update, context)
-        else:
+        elif len(beers) == 1:
             self._send_beer(beers[0], update, context)
+        else:
+            self._not_found(update, context)
+
+    def _not_found(self, update: Updater, context: CallbackContext):
+        chat_id = update.effective_chat.id
+        text = 'Nothing found'
+        context.bot.send_message(chat_id=chat_id, text=text)
 
     def _send_beer(self, beer, update: Updater, context: CallbackContext):
         chat_id = update.effective_chat.id
@@ -50,7 +58,7 @@ class BeerBot:
 
     def _select_option(self, update: Updater, context: CallbackContext):
         query = update.callback_query
-        beer = self._client.find_by_name(query.data)[0]
+        beer = self._client.get_by_name(query.data)[0]
         self._send_beer(beer, update, context)
 
     def _parse_beer_to_html(self, raw_beer):
