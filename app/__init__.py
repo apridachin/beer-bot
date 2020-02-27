@@ -1,5 +1,5 @@
 from app import logging, settings
-from app.api.beer_client import BeerClient
+from app.api.brewery_db import BeerClient
 from app.bot.beer_bot import BeerBot
 
 logging.init_app()

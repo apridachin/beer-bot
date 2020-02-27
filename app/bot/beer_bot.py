@@ -1,7 +1,6 @@
-from telegram import ParseMode, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 
-from app.utils.typing_wrapper import send_action
 from app.settings import TelegramToken
 
 
@@ -58,15 +57,13 @@ class BeerBot:
         name = raw_beer.get('name', 'Not Found')
         abv = raw_beer['abv']
         ibu = raw_beer['ibu']
-        tagline = raw_beer['tagline']
+        style = raw_beer['style']
+        category = raw_beer['category']
         desc = raw_beer['description']
-        raw_food = raw_beer.get('food_pairing', [])
-        food_text = ''.join(map(lambda x: f'{x}, ', raw_food))
-        tips = raw_beer['brewers_tips']
-        text = f'🍺🍺🍺 <b>"{name} - {tagline}</b> 🍺🍺🍺"' \
-               f'\n️🍻 Description:\n{desc}\n' \
-               f'\n🥙 Food paring:\n{food_text}\n' \
-               f'\n💎 Tips:\n{tips}\n' \
+        text = f'🍺🍺🍺 <b>"{name}"</b> 🍺🍺🍺\n' \
+               f'\n️💅 <b>Style</b>:\n{style}\n' \
+               f'\n🗃️ <b>Category</b>:\n{category}\n' \
+               f'\n️🍻 <b>Description</b>:\n{desc}\n' \
                f'\n📈 <i>ABV={abv}' \
                f'\n📉 IBU={ibu}</i>'
         return text
