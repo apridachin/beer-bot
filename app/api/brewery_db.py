@@ -12,11 +12,24 @@ class BeerClient:
         return 'Y' if value else 'N'
 
     def check(self):
-        url = f'{self._url}/heartbeat'
+        url = f'{self._url}/heartbeat&key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
+
+    def search_beer(self, value):
+        url = f'{self._url}/search?type=beer&q={value}&key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        beers = []
+        if json['totalResults'] == 0:
+            return beers
+        for raw_beer in json['data']:
+            beer = BeerClient.parse_beer(raw_beer)
+            beers.append(beer)
+        return beers
 
     def get_random(self, with_social=True, with_ingredients=True, with_breweries=True):
         url = f'{self._url}/beer/random?' \

@@ -12,11 +12,13 @@ class BeerBot:
 
         self.random_handler = CommandHandler('random', self._random_beer)
         self.find_handler = CommandHandler('find', self._find_beer)
+        self.search_handler = CommandHandler('search', self._search_beer)
         self.select_handler = CallbackQueryHandler(self._select_option)
         self.unknown_handler = MessageHandler(Filters.command, self._unknown)
 
         self.dispatcher.add_handler(self.random_handler)
         self.dispatcher.add_handler(self.find_handler)
+        self.dispatcher.add_handler(self.search_handler)
         self.dispatcher.add_handler(self.select_handler)
         self.dispatcher.add_handler(self.unknown_handler)
 
@@ -26,6 +28,17 @@ class BeerBot:
     def _random_beer(self, update, context):
         beer = self._client.get_random()
         self._send_beer(beer, update, context)
+
+    def _search_beer(self, update, context):
+        user_message = update.message.text
+        beer_name = user_message.replace('/search ', '')
+        beers = self._client.search_beer(beer_name)
+        if len(beers) > 1:
+            self._show_options(beers, update, context)
+        elif len(beers) == 1:
+            self._send_beer(beers[0], update, context)
+        else:
+            self._not_found(update, context)
 
     def _find_beer(self, update, context):
         user_message = update.message.text
