@@ -1,11 +1,14 @@
 import os
 import sys
+import traceback
 from threading import Thread
 from requests import HTTPError
+
 from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram.utils.helpers import mention_html
 
-from app.settings import TelegramToken, Admin
+from app.settings import TelegramToken, Admins, Devs
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
 
@@ -21,7 +24,7 @@ class BeerBot:
         self.search_handler = CommandHandler('search', self._search_beer)
         self.select_info_handler = CallbackQueryHandler(self._select_info, pattern='info')
         self.select_beer_handler = CallbackQueryHandler(self._select_beer, pattern='beer')
-        self.restart_handler = CommandHandler('restart', self.restart, filters=Filters.user(username=f'@{Admin}'))
+        self.restart_handler = CommandHandler('restart', self.restart, filters=Filters.user(username=Admins))
         self.unknown_handler = MessageHandler(Filters.command, self._unknown)
 
         self.dispatcher.add_handler(self.random_handler)
@@ -31,6 +34,7 @@ class BeerBot:
         self.dispatcher.add_handler(self.select_beer_handler)
         self.dispatcher.add_handler(self.restart_handler)
         self.dispatcher.add_handler(self.unknown_handler)
+        self.dispatcher.add_error_handler(self.handle_error)
 
     def run(self):
         self.updater.start_polling()
@@ -41,12 +45,13 @@ class BeerBot:
         os.execl(sys.executable, sys.executable, *sys.argv)
 
     def restart(self, update, context):
-        update.message.reply_text('Bot is restarting...')
+        update.message.reply_text('Bot is restarting... ♻️')
         Thread(target=self.stop_and_restart).start()
         update.message.reply_text('Bot is ready! 🤖')
 
     def _unknown(self, update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command. 🤷")
+        self.handle_error(update, context)
 
     def _random_beer(self, update, context):
         beer = self._client.get_random()
@@ -135,6 +140,33 @@ class BeerBot:
             context.bot.send_message(chat_id=update.effective_chat.id, text=text)
         except KeyError:
             self._not_found(update, context)
+
+    def handle_error(self, update, context):
+        if update.effective_message:
+            text = "Hey. I'm sorry to inform you that an error happened while I tried to handle your update. " \
+                   "My developer(s) will be notified."
+            update.effective_message.reply_text(text)
+
+        trace = "".join(traceback.format_tb(sys.exc_info()[2]))
+        payload = ""
+        if update.effective_user:
+            payload += f' with the user {mention_html(update.effective_user.id, update.effective_user.first_name)}'
+
+        if update.effective_chat:
+            payload += f' within the chat <i>{update.effective_chat.title}</i>'
+            if update.effective_chat.username:
+                payload += f' (@{update.effective_chat.username})'
+
+        if update.poll:
+            payload += f' with the poll id {update.poll.id}.'
+
+        text = f"The error <code>{context.error}</code> happened{payload}. The full traceback:\n\n<code>{trace}" \
+               f"</code>"
+
+        for dev_id in Devs:
+            context.bot.send_message(dev_id, text, parse_mode=ParseMode.HTML)
+
+        raise
 
     def _parse_variations(self, variations):
         pass
