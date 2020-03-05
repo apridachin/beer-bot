@@ -19,6 +19,7 @@ class BeerBot:
         self.updater = Updater(token=TelegramToken, use_context=True)
         self.dispatcher = self.updater.dispatcher
 
+        self.show_handler = CommandHandler('list', self._show_handlers)
         self.random_handler = CommandHandler('random', self._random_beer)
         self.find_handler = CommandHandler('find', self._find_beer)
         self.search_handler = CommandHandler('search', self._search_beer)
@@ -27,6 +28,7 @@ class BeerBot:
         self.restart_handler = CommandHandler('restart', self.restart, filters=Filters.user(username=Admins))
         self.unknown_handler = MessageHandler(Filters.command, self._unknown)
 
+        self.dispatcher.add_handler(self.show_handler)
         self.dispatcher.add_handler(self.random_handler)
         self.dispatcher.add_handler(self.find_handler)
         self.dispatcher.add_handler(self.search_handler)
@@ -49,9 +51,15 @@ class BeerBot:
         Thread(target=self.stop_and_restart).start()
         update.message.reply_text('Bot is ready! 🤖')
 
+    @send_typing_action
+    def _show_handlers(self, update, context):
+        text = f'This is what you can ask me to do:\n' \
+               f'/random - get random beer\n' \
+               f'/search - find beer by name'
+        context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+
     def _unknown(self, update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command. 🤷")
-        self.handle_error(update, context)
 
     def _random_beer(self, update, context):
         beer = self._client.get_random()
