@@ -3,6 +3,7 @@ from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 
 from app.settings import TelegramToken
+from app.utils.build_menu import build_menu
 
 
 class BeerBot:
@@ -78,7 +79,7 @@ class BeerBot:
     def _show_options(self, beers, update: Updater, context: CallbackContext):
         beer_options = [InlineKeyboardButton(beer.get('name', ''), callback_data=f'beer_{beer.get("id")}') for beer in
                         beers]
-        reply_markup = InlineKeyboardMarkup(BeerBot.build_menu(beer_options, n_cols=3))
+        reply_markup = InlineKeyboardMarkup(build_menu(beer_options, n_cols=3))
         context.bot.send_message(chat_id=update.effective_chat.id, text="Choose your destiny 💀",
                                  reply_markup=reply_markup)
 
@@ -150,12 +151,3 @@ class BeerBot:
             text += f'\n️💁‍♂️ <b>More Info</b>:\n{accounts_text}\n'
 
         return text
-
-    @staticmethod
-    def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
-        menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
-        if header_buttons:
-            menu.insert(0, [header_buttons])
-        if footer_buttons:
-            menu.append([footer_buttons])
-        return menu
