@@ -18,7 +18,7 @@ class BeerClient:
         json = response.json()
         return json['data']
 
-    def search_beer(self, value):
+    def search_beer(self, value: str):
         url = f'{self._url}/search?type=beer&q={value}&key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
@@ -30,6 +30,19 @@ class BeerClient:
             beer = BeerClient.parse_beer(raw_beer)
             beers.append(beer)
         return beers
+
+    def search_brewery(self, value: str):
+        url = f'{self._url}/search?type=brewery&q={value}&key={BreweryToken}'
+        response = request('GET', url, timeout=self._timeout)
+        response.raise_for_status()
+        json = response.json()
+        breweries = []
+        if json['totalResults'] == 0:
+            return breweries
+        for raw_beer in json['data']:
+            beer = BeerClient.parse_beer(raw_beer)
+            breweries.append(beer)
+        return breweries
 
     def get_random(self, with_social=True, with_ingredients=True, with_breweries=True):
         url = f'{self._url}/beer/random?' \
@@ -72,21 +85,21 @@ class BeerClient:
             beers.append(beer)
         return beers
 
-    def get_adjuncts(self, beer_id: int):
+    def get_adjuncts(self, beer_id: str):
         url = f'{self._url}/beer/{beer_id}/adjuncts?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
 
-    def get_ingredients(self, beer_id: int):
+    def get_ingredients(self, beer_id: str):
         url = f'{self._url}/beer/{beer_id}/ingredients?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
 
-    def get_variations(self, beer_id: int):
+    def get_variations(self, beer_id: str):
         url = f'{self._url}/beer/{beer_id}/variations?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
