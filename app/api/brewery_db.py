@@ -1,3 +1,4 @@
+import urllib.parse
 from requests import request
 from app.settings import BreweryToken
 
@@ -19,7 +20,8 @@ class BeerClient:
         return json['data']
 
     def search_beer(self, value: str):
-        url = f'{self._url}/search?type=beer&q={value}&key={BreweryToken}'
+        q = urllib.parse.urlencode(value)
+        url = f'{self._url}/search?type=beer&q={q}&key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
@@ -32,7 +34,8 @@ class BeerClient:
         return beers
 
     def search_brewery(self, value: str):
-        url = f'{self._url}/search?type=brewery&q={value}&key={BreweryToken}'
+        q = urllib.parse.urlencode(value)
+        url = f'{self._url}/search?type=brewery&q={q}&key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
@@ -57,7 +60,8 @@ class BeerClient:
         return beer
 
     def get_by_id(self, id: int, with_social=True, with_ingredients=True, with_breweries=True):
-        url = f'{self._url}/beer/{id}?' \
+        qid = urllib.parse.urlencode(id)
+        url = f'{self._url}/beer/{qid}?' \
               f'withSocialAccounts={BeerClient._convert(with_social)}&' \
               f'withIngredients={BeerClient._convert(with_ingredients)}&' \
               f'withBreweries={BeerClient._convert(with_breweries)}&' \
@@ -69,7 +73,8 @@ class BeerClient:
         return beer
 
     def get_by_name(self, name: str, with_social=True, with_ingredients=True, with_breweries=True):
-        url = f'{self._url}/beers?name={name}&' \
+        qname = urllib.parse.urlencode(name)
+        url = f'{self._url}/beers?name={qname}&' \
               f'withSocialAccounts={BeerClient._convert(with_social)}&' \
               f'withIngredients={BeerClient._convert(with_ingredients)}&' \
               f'withBreweries={BeerClient._convert(with_breweries)}&' \
@@ -78,29 +83,32 @@ class BeerClient:
         response.raise_for_status()
         json = response.json()
         beers = []
-        if json['totalResults'] == 0:
+        if json.get('totalResults', 0) == 0:
             return beers
-        for raw_beer in json['data']:
+        for raw_beer in json.get('data', []):
             beer = BeerClient.parse_beer(raw_beer)
             beers.append(beer)
         return beers
 
     def get_adjuncts(self, beer_id: str):
-        url = f'{self._url}/beer/{beer_id}/adjuncts?key={BreweryToken}'
+        qid = urllib.parse.urlencode(beer_id)
+        url = f'{self._url}/beer/{qid}/adjuncts?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
 
     def get_ingredients(self, beer_id: str):
-        url = f'{self._url}/beer/{beer_id}/ingredients?key={BreweryToken}'
+        qid = urllib.parse.urlencode(beer_id)
+        url = f'{self._url}/beer/{qid}/ingredients?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
         return json['data']
 
     def get_variations(self, beer_id: str):
-        url = f'{self._url}/beer/{beer_id}/variations?key={BreweryToken}'
+        qid = urllib.parse.urlencode(beer_id)
+        url = f'{self._url}/beer/{qid}/variations?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
@@ -113,8 +121,9 @@ class BeerClient:
         json = response.json()
         return json['data']
 
-    def get_style_by_id(self, style_id: int):
-        url = f'{self._url}/styles/{style_id}?key={BreweryToken}'
+    def get_style_by_id(self, style_id: str):
+        qid = urllib.parse.urlencode(style_id)
+        url = f'{self._url}/styles/{qid}?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
         json = response.json()
