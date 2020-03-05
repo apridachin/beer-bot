@@ -20,7 +20,7 @@ class BeerClient:
         return json['data']
 
     def search_beer(self, value: str):
-        q = urllib.parse.urlencode(value)
+        q = urllib.parse.quote(value)
         url = f'{self._url}/search?type=beer&q={q}&key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
@@ -34,7 +34,7 @@ class BeerClient:
         return beers
 
     def search_brewery(self, value: str):
-        q = urllib.parse.urlencode(value)
+        q = urllib.parse.quote(value)
         url = f'{self._url}/search?type=brewery&q={q}&key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
@@ -60,7 +60,7 @@ class BeerClient:
         return beer
 
     def get_by_id(self, id: int, with_social=True, with_ingredients=True, with_breweries=True):
-        qid = urllib.parse.urlencode(id)
+        qid = urllib.parse.quote(id)
         url = f'{self._url}/beer/{qid}?' \
               f'withSocialAccounts={BeerClient._convert(with_social)}&' \
               f'withIngredients={BeerClient._convert(with_ingredients)}&' \
@@ -73,7 +73,7 @@ class BeerClient:
         return beer
 
     def get_by_name(self, name: str, with_social=True, with_ingredients=True, with_breweries=True):
-        qname = urllib.parse.urlencode(name)
+        qname = urllib.parse.quote(name)
         url = f'{self._url}/beers?name={qname}&' \
               f'withSocialAccounts={BeerClient._convert(with_social)}&' \
               f'withIngredients={BeerClient._convert(with_ingredients)}&' \
@@ -91,7 +91,7 @@ class BeerClient:
         return beers
 
     def get_adjuncts(self, beer_id: str):
-        qid = urllib.parse.urlencode(beer_id)
+        qid = urllib.parse.quote(beer_id)
         url = f'{self._url}/beer/{qid}/adjuncts?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
@@ -99,7 +99,7 @@ class BeerClient:
         return json['data']
 
     def get_ingredients(self, beer_id: str):
-        qid = urllib.parse.urlencode(beer_id)
+        qid = urllib.parse.quote(beer_id)
         url = f'{self._url}/beer/{qid}/ingredients?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
@@ -107,7 +107,7 @@ class BeerClient:
         return json['data']
 
     def get_variations(self, beer_id: str):
-        qid = urllib.parse.urlencode(beer_id)
+        qid = urllib.parse.quote(beer_id)
         url = f'{self._url}/beer/{qid}/variations?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()
@@ -122,7 +122,7 @@ class BeerClient:
         return json['data']
 
     def get_style_by_id(self, style_id: str):
-        qid = urllib.parse.urlencode(style_id)
+        qid = urllib.parse.quote(style_id)
         url = f'{self._url}/styles/{qid}?key={BreweryToken}'
         response = request('GET', url, timeout=self._timeout)
         response.raise_for_status()

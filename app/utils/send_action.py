@@ -1,4 +1,5 @@
 from functools import wraps
+from telegram import ChatAction
 
 
 def send_action(action):
@@ -13,3 +14,8 @@ def send_action(action):
         return command_func
 
     return decorator
+
+
+send_typing_action = send_action(ChatAction.TYPING)
+
+__all__ = ['send_typing_action']

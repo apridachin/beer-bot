@@ -4,6 +4,7 @@ from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandle
 
 from app.settings import TelegramToken
 from app.utils.build_menu import build_menu
+from app.utils.send_action import send_typing_action
 
 
 class BeerBot:
@@ -36,6 +37,7 @@ class BeerBot:
         beer = self._client.get_random()
         self._send_beer(beer, update, context)
 
+    @send_typing_action
     def _search_beer(self, update, context):
         user_message = update.message.text
         beer_name = user_message.replace('/search ', '')
@@ -47,6 +49,7 @@ class BeerBot:
         else:
             self._not_found(update, context)
 
+    @send_typing_action
     def _find_beer(self, update, context):
         user_message = update.message.text
         beer_name = user_message.replace('/find ', '')
@@ -59,11 +62,13 @@ class BeerBot:
         else:
             self._not_found(update, context)
 
+    @send_typing_action
     def _not_found(self, update: Updater, context: CallbackContext):
         chat_id = update.effective_chat.id
         text = 'Nothing found'
         context.bot.send_message(chat_id=chat_id, text=text)
 
+    @send_typing_action
     def _send_beer(self, beer, update: Updater, context: CallbackContext):
         chat_id = update.effective_chat.id
         beer_id = beer.get('id', '')
@@ -76,6 +81,7 @@ class BeerBot:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Want to know more?",
                                  reply_markup=reply_markup)
 
+    @send_typing_action
     def _show_options(self, beers, update: Updater, context: CallbackContext):
         beer_options = [InlineKeyboardButton(beer.get('name', ''), callback_data=f'beer_{beer.get("id")}') for beer in
                         beers]
@@ -83,6 +89,7 @@ class BeerBot:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Choose your destiny 💀",
                                  reply_markup=reply_markup)
 
+    @send_typing_action
     def _select_beer(self, update: Updater, context: CallbackContext):
         query = update.callback_query
         beer_id = query.data.replace('beer_', '')
@@ -92,6 +99,7 @@ class BeerBot:
         except HTTPError:
             self._not_found(update, context)
 
+    @send_typing_action
     def _select_info(self, update: Updater, context: CallbackContext):
         query = update.callback_query
         [prefix, beer_id, command_name] = query.data.split('_')
