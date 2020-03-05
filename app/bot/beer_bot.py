@@ -1,8 +1,11 @@
+import os
+import sys
+from threading import Thread
 from requests import HTTPError
 from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 
-from app.settings import TelegramToken
+from app.settings import TelegramToken, Admin
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
 
@@ -18,6 +21,7 @@ class BeerBot:
         self.search_handler = CommandHandler('search', self._search_beer)
         self.select_info_handler = CallbackQueryHandler(self._select_info, pattern='info')
         self.select_beer_handler = CallbackQueryHandler(self._select_beer, pattern='beer')
+        self.restart_handler = CommandHandler('restart', self.restart, filters=Filters.user(username=f'@{Admin}'))
         self.unknown_handler = MessageHandler(Filters.command, self._unknown)
 
         self.dispatcher.add_handler(self.random_handler)
@@ -25,10 +29,21 @@ class BeerBot:
         self.dispatcher.add_handler(self.search_handler)
         self.dispatcher.add_handler(self.select_info_handler)
         self.dispatcher.add_handler(self.select_beer_handler)
+        self.dispatcher.add_handler(self.restart_handler)
         self.dispatcher.add_handler(self.unknown_handler)
 
     def run(self):
         self.updater.start_polling()
+
+    def stop_and_restart(self):
+        """Gracefully stop the Updater and replace the current process with a new one"""
+        self.updater.stop()
+        os.execl(sys.executable, sys.executable, *sys.argv)
+
+    def restart(self, update, context):
+        update.message.reply_text('Bot is restarting...')
+        Thread(target=self.stop_and_restart).start()
+        update.message.reply_text('Bot is ready! 🤖')
 
     def _unknown(self, update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")

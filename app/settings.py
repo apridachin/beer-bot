@@ -7,5 +7,6 @@ load_dotenv(dotenv_path=env_path)
 
 TelegramToken = os.getenv('TELEGRAM_TOKEN')
 BreweryToken = os.getenv('BREWERY_TOKEN')
+Admin = os.getenv('ADMIN')
 
-__all__ = ['TelegramToken', 'BreweryToken']
+__all__ = ['TelegramToken', 'BreweryToken', 'Admin']
