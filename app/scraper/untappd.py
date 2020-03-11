@@ -17,23 +17,22 @@ class UtappdScraper:
         query, search_type, sort = itemgetter("query", "type", "sort")(options)
         url = f"{self.url}/search?q={query}&type={search_type}&sort={sort}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
-        # todo parse function choice
-        result = self.parse_search(response)
+        result = self.parse_search_page(type, response)
         return result
 
     def get_beer(self, beer_id: int):
         url = f"{self.url}/beer/{beer_id}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
-        result = UtappdScraper.parse_beer(response)
+        result = UtappdScraper.parse_beer_page(response)
         return result
 
     def get_brewery(self, brewery_id: int):
         url = f"{self.url}/brewery/{brewery_id}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
-        result = UtappdScraper.parse_brewery(response)
+        result = UtappdScraper.parse_brewery_page(response)
         return result
 
-    def parse_search(self, response):
+    def parse_search_page(self, type, response):
         search_result = {"total": 0, "entities": {}}
 
         html = BeautifulSoup(response, "html.parser")
@@ -43,11 +42,14 @@ class UtappdScraper:
 
         for r in results:
             try:
-                beer_text = r.find("a", class_="label")["href"].strip()
-                beer_id = int(re.sub(r"\D", "", beer_text))
-                beer = self.get_beer(beer_id)
-
-                search_result["entities"].update({beer_id: beer})
+                item_text = r.find("a", class_="label")["href"].strip()
+                item_id = int(re.sub(r"\D", "", item_text))
+                if type == "beer":
+                    beer = self.get_beer(item_id)
+                    search_result["entities"].update({item_id: beer})
+                else:
+                    brewery = self.get_brewery(item_id)
+                    search_result["entities"].update({item_id: brewery})
             except Exception:
                 # todo log error
                 traceback.print_exc(file=sys.stdout)
@@ -56,7 +58,7 @@ class UtappdScraper:
         return search_result
 
     @staticmethod
-    def parse_beer(response):
+    def parse_beer_page(response):
         html = BeautifulSoup(response, "html.parser")
 
         name = html.find("h1").text.strip()
@@ -71,7 +73,6 @@ class UtappdScraper:
         rating = UtappdScraper.convert_to_float(rating_text)  # todo fix float convert
         raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
         description = html.find("div", class_="beer-descrption-read-less").text.strip()
-        # add brewery parsing
         beer = {}
         beer.update(
             {
@@ -88,7 +89,7 @@ class UtappdScraper:
         return beer
 
     @staticmethod
-    def parse_brewery(response):
+    def parse_brewery_page(response):
         html = BeautifulSoup(response, "html.parser")
 
         name = html.find("h1").text.strip()
@@ -119,7 +120,7 @@ class UtappdScraper:
 
 
 def test_run():
-    default_options = {"query": "kek", "type": "beer", "sort": "all"}
+    default_options = {"query": "kek", "type": "brewery", "sort": "all"}
     scraper = UtappdScraper()
     result = scraper.search(default_options)
     pprint(result)

@@ -4,6 +4,8 @@ from app.settings import BreweryToken
 
 
 class BeerClient:
+    """A class used to connect with brewery.db API"""
+
     def __init__(self, timeout, testing=False):
         self._url = "https://sandbox-api.brewerydb.com/v2" if testing else "https://api.brewerydb.com/v2"
         self._timeout = timeout
