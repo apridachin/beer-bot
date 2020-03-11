@@ -1,2 +1,0 @@
-- id: python-bandit-vulnerability-check
-    args: [--verbose, --ini, .banditrc, -ll, --skip, "B321,B402", --recursive, app]
