@@ -17,4 +17,4 @@ def restrict(admin_ids: []):
     return decorator
 
 
-__all__ = ['restrict']
+__all__ = ["restrict"]

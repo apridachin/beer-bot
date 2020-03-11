@@ -18,4 +18,4 @@ def send_action(action):
 
 send_typing_action = send_action(ChatAction.TYPING)
 
-__all__ = ['send_typing_action']
+__all__ = ["send_typing_action"]

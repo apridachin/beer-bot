@@ -61,9 +61,7 @@ class UtappdScraper:
 
         name = html.find("h1").text.strip()
         brewery_name = html.find("p", class_="brewery").text.strip()
-        brewery_link = (
-            html.find("p", class_="brewery").find("a")["href"].replace("/", "").strip()
-        )
+        brewery_link = html.find("p", class_="brewery").find("a")["href"].replace("/", "").strip()
         style = html.find("p", class_="style").text.strip()
         abv_text = html.find("p", class_="abv").text.strip()
         abv = UtappdScraper.convert_to_float(abv_text)
@@ -71,12 +69,7 @@ class UtappdScraper:
         ibu = UtappdScraper.convert_to_float(ibu_text)
         rating_text = html.find("div", class_="caps")["data-rating"].strip()
         rating = UtappdScraper.convert_to_float(rating_text)  # todo fix float convert
-        raters = (
-            html.find("p", class_="raters")
-            .text.replace("Ratings", "")
-            .replace(",", "")
-            .strip()
-        )
+        raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
         description = html.find("div", class_="beer-descrption-read-less").text.strip()
         # add brewery parsing
         beer = {}
@@ -102,12 +95,7 @@ class UtappdScraper:
         location = html.find("p", class_="brewery").text.strip()
         style = html.find("p", class_="style").text.strip()
         rating = html.find("div", class_="caps")["data-rating"].strip()
-        raters = (
-            html.find("p", class_="raters")
-            .text.replace("Ratings", "")
-            .replace(",", "")
-            .strip()
-        )
+        raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
         beers_count = html.find("p", class_="count").text.strip()
 
         entity = {}

@@ -8,6 +8,7 @@ repos:
     rev: 5a1c4f0
     hooks:
       - id: bandit
+        args: [--verbose, --ini, .bandit, -ll, --skip, "B606", --recursive]
 #  - repo: local
 #    hooks:
 #      - id: tests
