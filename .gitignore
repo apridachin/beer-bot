@@ -2,4 +2,5 @@ __pycache__
 .env
 .mypy_cache
 .python-version
+.DS_Store
 venv/
