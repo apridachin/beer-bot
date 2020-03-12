@@ -17,7 +17,7 @@ class UtappdScraper:
         query, search_type, sort = itemgetter("query", "type", "sort")(options)
         url = f"{self.url}/search?q={query}&type={search_type}&sort={sort}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
-        result = self.parse_search_page(type, response)
+        result = self.parse_search_page(search_type, response)
         return result
 
     def get_beer(self, beer_id: int):
@@ -32,7 +32,7 @@ class UtappdScraper:
         result = UtappdScraper.parse_brewery_page(response)
         return result
 
-    def parse_search_page(self, type, response):
+    def parse_search_page(self, search_type, response):
         search_result = {"total": 0, "entities": {}}
 
         html = BeautifulSoup(response, "html.parser")
@@ -44,7 +44,7 @@ class UtappdScraper:
             try:
                 item_text = r.find("a", class_="label")["href"].strip()
                 item_id = int(re.sub(r"\D", "", item_text))
-                if type == "beer":
+                if search_type == "beer":
                     beer = self.get_beer(item_id)
                     search_result["entities"].update({item_id: beer})
                 else:
@@ -73,6 +73,14 @@ class UtappdScraper:
         rating = UtappdScraper.convert_to_float(rating_text)  # todo fix float convert
         raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
         description = html.find("div", class_="beer-descrption-read-less").text.strip()
+        similar_beer_items = html.find("h3", text="Similar Beers").parent.find_all("a", {"data-href": ":beer/similar"})
+        similar_beer_links = set([item["href"] for item in similar_beer_items])
+        similar_beers = [int(re.sub(r"\D", "", link)) for link in similar_beer_links]
+        location_items = html.find("h3", text="Verified Locations").parent.find_all(
+            "a", {"data-href": ":venue/toplist"}
+        )
+        locations_links = set([item["href"] for item in location_items])
+        locations = [int(re.sub(r"\D", "", location)) for location in locations_links]
         beer = {}
         beer.update(
             {
@@ -84,6 +92,8 @@ class UtappdScraper:
                 "rating": rating,
                 "raters": raters,
                 "description": description,
+                "similar": similar_beers,
+                "locations": locations,
             }
         )
         return beer
@@ -120,7 +130,7 @@ class UtappdScraper:
 
 
 def test_run():
-    default_options = {"query": "kek", "type": "brewery", "sort": "all"}
+    default_options = {"query": "kek", "type": "beer", "sort": "all"}
     scraper = UtappdScraper()
     result = scraper.search(default_options)
     pprint(result)
