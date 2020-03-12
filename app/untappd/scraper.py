@@ -22,13 +22,6 @@ class UtappdScraper:
         result = self.parse_search_page(search_type, response)
         return result
 
-    def search_beer(self, beer_name):
-        """Performs searching beers by name"""
-        options = {"query": beer_name, "search_type": "beer", "sort": "all"}
-        result = self.search(**options)
-        beers = result.get("entities", {}).values()
-        return beers
-
     def get_beer(self, beer_id: int):
         """Performs getting beers by id"""
         url = f"{self.url}/beer/{beer_id}"
