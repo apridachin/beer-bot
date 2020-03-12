@@ -27,8 +27,6 @@ class BeerBot:
         self.dispatcher = self.updater.dispatcher
 
         self.show_handler = CommandHandler("list", self._show_handlers)
-        self.random_handler = CommandHandler("random", self._random_beer)
-        self.find_handler = CommandHandler("find", self._find_beer)
         self.search_handler = CommandHandler("search", self._search_beer)
         self.select_info_handler = CallbackQueryHandler(self._select_info, pattern="info")
         self.select_beer_handler = CallbackQueryHandler(self._select_beer, pattern="beer")
@@ -36,8 +34,6 @@ class BeerBot:
         self.unknown_handler = MessageHandler(Filters.command, self._unknown)
 
         self.dispatcher.add_handler(self.show_handler)
-        self.dispatcher.add_handler(self.random_handler)
-        self.dispatcher.add_handler(self.find_handler)
         self.dispatcher.add_handler(self.search_handler)
         self.dispatcher.add_handler(self.select_info_handler)
         self.dispatcher.add_handler(self.select_beer_handler)
@@ -60,17 +56,14 @@ class BeerBot:
 
     @send_typing_action
     def _show_handlers(self, update, context):
-        text = f"This is what you can ask me to do:\n" f"/random - get random beer\n" f"/search - find beer by name"
+        text = f"This is what you can ask me to do:\n" f"/search - find beer by name"
         context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
+    @send_typing_action
     def _unknown(self, update, context):
         context.bot.send_message(
             chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command. 🤷",
         )
-
-    def _random_beer(self, update, context):
-        beer = self._client.get_random()
-        self._send_beer(beer, update, context)
 
     @send_typing_action
     def _search_beer(self, update, context):
@@ -78,22 +71,9 @@ class BeerBot:
         beer_name = user_message.replace("/search ", "")
         beers = self._client.search_beer(beer_name)
         if len(beers) > 1:
-            self._show_options(beers, update, context)
+            self._show_options(update, context, beers)
         elif len(beers) == 1:
-            self._send_beer(beers[0], update, context)
-        else:
-            self._not_found(update, context)
-
-    @send_typing_action
-    def _find_beer(self, update, context):
-        user_message = update.message.text
-        beer_name = user_message.replace("/find ", "")
-        beers = self._client.get_by_name(beer_name)
-
-        if len(beers) > 1:
-            self._show_options(beers, update, context)
-        elif len(beers) == 1:
-            self._send_beer(beers[0], update, context)
+            self._send_beer(update, context, beers[0])
         else:
             self._not_found(update, context)
 
@@ -104,14 +84,14 @@ class BeerBot:
         context.bot.send_message(chat_id=chat_id, text=text)
 
     @send_typing_action
-    def _send_beer(self, beer, update: Updater, context: CallbackContext):
+    def _send_beer(self, update: Updater, context: CallbackContext, beer):
         chat_id = update.effective_chat.id
         beer_id = beer.get("id", "")
         text = self._parse_beer_to_html(beer)
         options = [
-            [InlineKeyboardButton("Variations", callback_data=f"info_{beer_id}_variations")],
-            [InlineKeyboardButton("Ingredients", callback_data=f"info_{beer_id}_ingredients")],
-            [InlineKeyboardButton("Adjuncts", callback_data=f"info_{beer_id}_adjuncts")],
+            [InlineKeyboardButton("Brewery", callback_data=f"info_{beer_id}_brewery")],
+            [InlineKeyboardButton("Similar", callback_data=f"info_{beer_id}_similar")],
+            [InlineKeyboardButton("Locations", callback_data=f"info_{beer_id}_locations")],
         ]
         reply_markup = InlineKeyboardMarkup(options)
         context.bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.HTML)
@@ -120,7 +100,7 @@ class BeerBot:
         )
 
     @send_typing_action
-    def _show_options(self, beers, update: Updater, context: CallbackContext):
+    def _show_options(self, update: Updater, context: CallbackContext, beers):
         beer_options = [
             InlineKeyboardButton(beer.get("name", ""), callback_data=f'beer_{beer.get("id")}') for beer in beers
         ]
@@ -134,8 +114,8 @@ class BeerBot:
         query = update.callback_query
         beer_id = query.data.replace("beer_", "")
         try:
-            beer = self._client.get_by_id(beer_id)
-            self._send_beer(beer, update, context)
+            beer = self._client.get_beer(beer_id)
+            self._send_beer(update, context, beer)
         except HTTPError:
             self._not_found(update, context)
 
@@ -144,14 +124,14 @@ class BeerBot:
         query = update.callback_query
         [prefix, beer_id, command_name] = query.data.split("_")
         client_mapping = {
-            "variations": self._client.get_variations,
-            "ingredients": self._client.get_ingredients,
-            "adjuncts": self._client.get_adjuncts,
+            "brewery": self._client.get_brewery,
+            "similar": self._client.get_similar,
+            "locations": self._client.get_locations,
         }
         parse_mapping = {
-            "variations": self._parse_variations,
-            "ingredients": self._parse_ingredients,
-            "adjuncts": self._parse_adjuncts,
+            "brewery": self._parse_brewery,
+            "similar": self._parse_similar,
+            "locations": self._parse_locations,
         }
 
         try:
@@ -188,16 +168,15 @@ class BeerBot:
 
         for dev_id in Devs:
             context.bot.send_message(dev_id, text, parse_mode=ParseMode.HTML)
-
         raise
 
-    def _parse_variations(self, variations):
+    def _parse_brewery(self):
         pass
 
-    def _parse_ingredients(self, variations):
+    def _parse_similar(self):
         pass
 
-    def _parse_adjuncts(self, variations):
+    def _parse_locations(self):
         pass
 
     def _parse_beer_to_html(self, raw_beer):
@@ -205,29 +184,18 @@ class BeerBot:
         abv = raw_beer["abv"]
         ibu = raw_beer["ibu"]
         style = raw_beer["style"]
-        category = raw_beer["category"]
         desc = raw_beer["description"]
-        breweries = raw_beer["breweries"]
-        accounts = raw_beer["accounts"]
+        brewery = raw_beer["brewery"]["name"]
+        rating = raw_beer["rating"]
+        raters = raw_beer["raters"]
 
         text = (
             f'🍺🍺🍺 <b>"{name}"</b> 🍺🍺🍺\n'
-            f"\n📈 <i>ABV={abv}\n📉 IBU={ibu}</i> \n"
+            f"\n📈 <i>ABV {abv}\n📉 IBU {ibu}</i> \n"
             f"\n️💅 <b>Style</b>:\n{style}\n"
-            f"\n🗃️ <b>Category</b>:\n{category}\n"
+            f"\n🏠 <b>Brewery</b>:\n{brewery}\n"
             f"\n️✍️ <b>Description</b>:\n{desc}\n"
+            f"\n⭐️ <i>Rating {rating}\n👫 Raters {raters}</i> \n"
         )
-
-        if breweries:
-            breweries_text = ""
-            for b in breweries:
-                breweries_text = f'{breweries_text}{b["name"]}\n'
-            text += f"\n️🏠 <b>Breweries</b>:\n{breweries_text}\n"
-
-        if accounts:
-            accounts_text = ""
-            for b in accounts:
-                accounts_text = f'{accounts_text}{b["name"]} {b["link"]}\n'
-            text += f"\n️💁‍♂️ <b>More Info</b>:\n{accounts_text}\n"
 
         return text

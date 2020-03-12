@@ -20,10 +20,17 @@ class UtappdScraper:
         result = self.parse_search_page(search_type, response)
         return result
 
+    def search_beer(self, beer_name):
+        options = {"query": beer_name, "type": "beer", "sort": "all"}
+        result = self.search(options)
+        beers = result.get("entities", {}).values()
+        return beers
+
     def get_beer(self, beer_id: int):
         url = f"{self.url}/beer/{beer_id}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         result = UtappdScraper.parse_beer_page(response)
+        result.update(id=beer_id)
         return result
 
     def get_brewery(self, brewery_id: int):
@@ -33,6 +40,27 @@ class UtappdScraper:
         return result
 
     def parse_search_page(self, search_type, response):
+        search_result = {"total": 0, "entities": {}}
+
+        html = BeautifulSoup(response, "html.parser")
+        total_text = html.find("p", class_="total").text.strip()
+        total = UtappdScraper.convert_to_float(total_text)
+        results = html.find_all("div", class_="beer-item")
+
+        for r in results:
+            try:
+                item_text = r.find("a", class_="label")["href"].strip()
+                item_id = int(re.sub(r"\D", "", item_text))
+                item_name = r.find("p", class_="name").text.strip()
+                search_result["entities"].update({item_id: {"name": item_name, "id": item_id}})
+            except Exception:
+                # todo log error
+                traceback.print_exc(file=sys.stdout)
+
+        search_result.update({"total": total})
+        return search_result
+
+    def crawl_search_page(self, search_type, response):
         search_result = {"total": 0, "entities": {}}
 
         html = BeautifulSoup(response, "html.parser")
@@ -76,7 +104,7 @@ class UtappdScraper:
         similar_beer_items = html.find("h3", text="Similar Beers").parent.find_all("a", {"data-href": ":beer/similar"})
         similar_beer_links = set([item["href"] for item in similar_beer_items])
         similar_beers = [int(re.sub(r"\D", "", link)) for link in similar_beer_links]
-        location_items = html.find("h3", text="Verified Locations").parent.find_all(
+        location_items = html.find("h3", text=re.compile(".*Verified Locations.*")).parent.find_all(
             "a", {"data-href": ":venue/toplist"}
         )
         locations_links = set([item["href"] for item in location_items])
