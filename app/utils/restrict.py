@@ -2,6 +2,8 @@ from functools import wraps
 
 
 def restrict(admin_ids: []):
+    """This is a decorator for telegram handlers which allow wrapped function call only for admins"""
+
     def decorator(func):
         @wraps(func)
         def wrapped(self, update, context, *args, **kwargs):

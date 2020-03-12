@@ -3,7 +3,7 @@ from telegram import ChatAction
 
 
 def send_action(action):
-    """Sends `action` while processing func command."""
+    """Sends `action` while processing function command."""
 
     def decorator(func):
         @wraps(func)

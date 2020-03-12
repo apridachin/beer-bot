@@ -21,11 +21,14 @@ from app.utils.send_action import send_typing_action
 
 
 class BeerBot:
+    """A class used as telegram bot which is chatting with users"""
+
     def __init__(self, client):
         self._client = client
         self.updater = Updater(token=TelegramToken, use_context=True)
         self.dispatcher = self.updater.dispatcher
 
+        # Commands
         self.show_handler = CommandHandler("list", self._show_handlers)
         self.search_handler = CommandHandler("search", self._search_beer)
         self.select_info_handler = CallbackQueryHandler(self._select_info, pattern="info")
@@ -33,6 +36,7 @@ class BeerBot:
         self.restart_handler = CommandHandler("restart", self.restart, filters=Filters.user(username=Admins))
         self.unknown_handler = MessageHandler(Filters.command, self._unknown)
 
+        # Registered handlers
         self.dispatcher.add_handler(self.show_handler)
         self.dispatcher.add_handler(self.search_handler)
         self.dispatcher.add_handler(self.select_info_handler)
@@ -42,6 +46,7 @@ class BeerBot:
         self.dispatcher.add_error_handler(self.handle_error)
 
     def run(self):
+        """Public method to start a bot"""
         self.updater.start_polling()
 
     def stop_and_restart(self):
@@ -50,23 +55,27 @@ class BeerBot:
         os.execl(sys.executable, sys.executable, *sys.argv)
 
     def restart(self, update, context):
+        """Public method to restart a bot"""
         update.message.reply_text("Bot is restarting... ♻️")
         Thread(target=self.stop_and_restart).start()
         update.message.reply_text("Bot is ready! 🤖")
 
     @send_typing_action
     def _show_handlers(self, update, context):
+        """Show all available commands"""
         text = f"This is what you can ask me to do:\n" f"/search - find beer by name"
         context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
     @send_typing_action
     def _unknown(self, update, context):
+        """Send message if command is unknown"""
         context.bot.send_message(
             chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command. 🤷",
         )
 
     @send_typing_action
     def _search_beer(self, update, context):
+        """Search beer by name and show a result"""
         user_message = update.message.text
         beer_name = user_message.replace("/search ", "")
         beers = self._client.search_beer(beer_name)
@@ -79,12 +88,14 @@ class BeerBot:
 
     @send_typing_action
     def _not_found(self, update: Updater, context: CallbackContext):
+        """Send message that noting was found"""
         chat_id = update.effective_chat.id
         text = "Nothing found"
         context.bot.send_message(chat_id=chat_id, text=text)
 
     @send_typing_action
     def _send_beer(self, update: Updater, context: CallbackContext, beer):
+        """Send prepared beer to user"""
         chat_id = update.effective_chat.id
         beer_id = beer.get("id", "")
         text = self._parse_beer_to_html(beer)
@@ -101,6 +112,7 @@ class BeerBot:
 
     @send_typing_action
     def _show_options(self, update: Updater, context: CallbackContext, beers):
+        """Send beer options to user"""
         beer_options = [
             InlineKeyboardButton(beer.get("name", ""), callback_data=f'beer_{beer.get("id")}') for beer in beers
         ]
@@ -111,6 +123,7 @@ class BeerBot:
 
     @send_typing_action
     def _select_beer(self, update: Updater, context: CallbackContext):
+        """Handler for choosing beer from search results"""
         query = update.callback_query
         beer_id = query.data.replace("beer_", "")
         try:
@@ -121,6 +134,7 @@ class BeerBot:
 
     @send_typing_action
     def _select_info(self, update: Updater, context: CallbackContext):
+        """Handler for choosing options from beer message"""
         query = update.callback_query
         [prefix, beer_id, command_name] = query.data.split("_")
         client_mapping = {
@@ -142,6 +156,7 @@ class BeerBot:
             self._not_found(update, context)
 
     def handle_error(self, update, context):
+        """Error handler, reply user and send traceback to devs"""
         if update.effective_message:
             text = (
                 "Hey. I'm sorry to inform you that an error happened while I tried to handle your update. "
@@ -180,6 +195,7 @@ class BeerBot:
         pass
 
     def _parse_beer_to_html(self, raw_beer):
+        """Preparing beer for message"""
         name = raw_beer.get("name", "Not Found")
         abv = raw_beer["abv"]
         ibu = raw_beer["ibu"]

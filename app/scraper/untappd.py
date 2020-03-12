@@ -1,8 +1,6 @@
 import re
 import sys
 import traceback
-from operator import itemgetter
-from pprint import pprint
 
 from bs4 import BeautifulSoup
 
@@ -10,23 +8,29 @@ from app.utils.fetch import simple_get
 
 
 class UtappdScraper:
-    def __init__(self):
-        self.url = "https://untappd.com"
+    """A class used to scrap and parse untappd.com in runtime"""
 
-    def search(self, options):
-        query, search_type, sort = itemgetter("query", "type", "sort")(options)
+    def __init__(self, timeout):
+        """Init  scrapper with timeout"""
+        self.url = "https://untappd.com"
+        self._timeout = timeout
+
+    def search(self, query, search_type, sort):
+        """Performs searching with options"""
         url = f"{self.url}/search?q={query}&type={search_type}&sort={sort}"
-        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
+        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
         result = self.parse_search_page(search_type, response)
         return result
 
     def search_beer(self, beer_name):
-        options = {"query": beer_name, "type": "beer", "sort": "all"}
-        result = self.search(options)
+        """Performs searching beers by name"""
+        options = {"query": beer_name, "search_type": "beer", "sort": "all"}
+        result = self.search(**options)
         beers = result.get("entities", {}).values()
         return beers
 
     def get_beer(self, beer_id: int):
+        """Performs getting beers by id"""
         url = f"{self.url}/beer/{beer_id}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         result = UtappdScraper.parse_beer_page(response)
@@ -34,12 +38,14 @@ class UtappdScraper:
         return result
 
     def get_brewery(self, brewery_id: int):
+        """Performs getting brewery by id"""
         url = f"{self.url}/brewery/{brewery_id}"
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         result = UtappdScraper.parse_brewery_page(response)
         return result
 
     def parse_search_page(self, search_type, response):
+        """Performs searching beers by name"""
         search_result = {"total": 0, "entities": {}}
 
         html = BeautifulSoup(response, "html.parser")
@@ -61,6 +67,7 @@ class UtappdScraper:
         return search_result
 
     def crawl_search_page(self, search_type, response):
+        """Crawling search results page by page"""
         search_result = {"total": 0, "entities": {}}
 
         html = BeautifulSoup(response, "html.parser")
@@ -87,6 +94,7 @@ class UtappdScraper:
 
     @staticmethod
     def parse_beer_page(response):
+        """Perform parsing untappd beer page"""
         html = BeautifulSoup(response, "html.parser")
 
         name = html.find("h1").text.strip()
@@ -128,6 +136,7 @@ class UtappdScraper:
 
     @staticmethod
     def parse_brewery_page(response):
+        """Perform parsing untappd brewery page"""
         html = BeautifulSoup(response, "html.parser")
 
         name = html.find("h1").text.strip()
@@ -152,16 +161,10 @@ class UtappdScraper:
 
     @staticmethod
     def convert_to_float(text):
+        """Convert text to float"""
         string = re.sub(r"[^\d\.]", "", text)
         result = float(string) if string else 0
         return result
 
 
-def test_run():
-    default_options = {"query": "kek", "type": "beer", "sort": "all"}
-    scraper = UtappdScraper()
-    result = scraper.search(default_options)
-    pprint(result)
-
-
-__all__ = ["UtappdScraper", "test_run"]
+__all__ = ["UtappdScraper"]
