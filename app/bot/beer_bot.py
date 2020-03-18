@@ -18,12 +18,14 @@ from telegram.utils.helpers import mention_html
 from app.settings import TelegramToken, Admins, Devs
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
+from app.logging import LoggerMixin
 
 
-class BeerBot:
+class BeerBot(LoggerMixin):
     """A class used as telegram bot which is chatting with users"""
 
     def __init__(self, client):
+        super().__init__()
         self._client = client
         self.updater = Updater(token=TelegramToken, use_context=True)
         self.dispatcher = self.updater.dispatcher
@@ -48,11 +50,13 @@ class BeerBot:
     def run(self):
         """Public method to start a bot"""
         self.updater.start_polling()
+        self.logger.info("Bot has been started")
 
     def stop_and_restart(self):
         """Gracefully stop the Updater and replace the current process with a new one"""
         self.updater.stop()
         os.execl(sys.executable, sys.executable, *sys.argv)
+        self.logger.info("Bot has been restarted")
 
     def restart(self, update, context):
         """Public method to restart a bot"""
@@ -69,6 +73,7 @@ class BeerBot:
     @send_typing_action
     def _unknown(self, update, context):
         """Send message if command is unknown"""
+        self.logger.info("Unknown command")
         context.bot.send_message(
             chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command. 🤷",
         )
@@ -77,6 +82,7 @@ class BeerBot:
     def _search_beer(self, update, context):
         """Search beer by name and show a result"""
         user_message = update.message.text
+        self.logger.info(f"Search {user_message}")
         beer_name = user_message.replace("/search ", "")
         beers = self._client.search_beer(beer_name)
         if len(beers) > 1:
@@ -84,6 +90,7 @@ class BeerBot:
         elif len(beers) == 1:
             self._send_beer(update, context, beers[0])
         else:
+            self.logger.info(f"Beer was not found {beer_name}")
             self._not_found(update, context)
 
     @send_typing_action
@@ -109,6 +116,7 @@ class BeerBot:
         context.bot.send_message(
             chat_id=update.effective_chat.id, text="Want to know more?", reply_markup=reply_markup,
         )
+        self.logger.info(f"Beer was sent {beer_id}")
 
     @send_typing_action
     def _show_options(self, update: Updater, context: CallbackContext, beers):
@@ -129,7 +137,9 @@ class BeerBot:
         try:
             beer = self._client.get_beer(beer_id)
             self._send_beer(update, context, beer)
+            self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:
+            self.logger.exception(f"Beer was not found {beer_id}")
             self._not_found(update, context)
 
     @send_typing_action
@@ -157,6 +167,7 @@ class BeerBot:
 
     def handle_error(self, update, context):
         """Error handler, reply user and send traceback to devs"""
+        self.logger.error(f"An error occured {context.error}")
         if update.effective_message:
             text = (
                 "Hey. I'm sorry to inform you that an error happened while I tried to handle your update. "

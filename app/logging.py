@@ -1,17 +1,22 @@
 import logging
 
 
-def init_app():
+def init_log():
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    logger = logging.getLogger("BeerBot")
-    logger.setLevel(logging.DEBUG)
-    app_log = logging.StreamHandler()
-    formatter = logging.Formatter("%(asctime)s %(process)s %(request_id)s %(levelname)s %(name)s %(message)s")
-    app_log.setFormatter(formatter)
-    logger.handlers = []
-    logger.addHandler(app_log)
 
 
-__all__ = ["init_app"]
+class LoggerMixin:
+    def __init__(self, name=None):
+        logger_name = name if name else __name__
+        self.logger = logging.getLogger(logger_name)
+        self.logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(asctime)s %(process)s %(levelname)s %(name)s %(message)s")
+        handler.setFormatter(formatter)
+        self.logger.handlers = []
+        self.logger.addHandler(handler)
+
+
+__all__ = ["init_log", "LoggerMixin"]

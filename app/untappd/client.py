@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 from .scraper import UtappdScraper
 
 
@@ -10,8 +13,12 @@ class UntappdClient:
     def search_beer(self, beer_name):
         """Performs searching beers by name"""
         options = {"query": beer_name, "search_type": "beer", "sort": "all"}
-        result = self._parser.search(**options)
-        beers = result.get("entities", {}).values()
+        beers = []
+        try:
+            result = self._parser.search(**options)
+            beers = result.get("entities", {}).values()
+        except Exception:
+            traceback.print_exc(file=sys.stdout)
         return beers
 
     def get_beer(self, beer_id: int):

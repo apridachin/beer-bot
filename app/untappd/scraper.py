@@ -4,28 +4,34 @@ import traceback
 
 from bs4 import BeautifulSoup
 
+from app.logging import LoggerMixin
 from app.utils.fetch import simple_get
 
 
-class UtappdScraper:
+class UtappdScraper(LoggerMixin):
     """A class used to scrap and parse untappd.com in runtime"""
 
     def __init__(self, timeout):
         """Init  scrapper with timeout"""
+        super().__init__()
         self.url = "https://untappd.com"
         self._timeout = timeout
 
     def search(self, query, search_type, sort):
         """Performs searching with options"""
         url = f"{self.url}/search?q={query}&type={search_type}&sort={sort}"
+        self.logger.info(f"search beer request {query} {search_type} {sort}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
+        self.logger.info(f"search beer response {response}")
         result = self.parse_search_page(search_type, response)
         return result
 
     def get_beer(self, beer_id: int):
         """Performs getting beers by id"""
         url = f"{self.url}/beer/{beer_id}"
+        self.logger.info(f"get beer request {beer_id}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
+        self.logger.info(f"get beer response {response}")
         result = UtappdScraper.parse_beer_page(response)
         result.update(id=beer_id)
         return result
@@ -33,7 +39,9 @@ class UtappdScraper:
     def get_brewery(self, brewery_id: int):
         """Performs getting brewery by id"""
         url = f"{self.url}/brewery/{brewery_id}"
+        self.logger.info(f"get brewery request {brewery_id}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
+        self.logger.info(f"get brewery response {response}")
         result = UtappdScraper.parse_brewery_page(response)
         return result
 
@@ -52,9 +60,8 @@ class UtappdScraper:
                 item_id = int(re.sub(r"\D", "", item_text))
                 item_name = r.find("p", class_="name").text.strip()
                 search_result["entities"].update({item_id: {"name": item_name, "id": item_id}})
-            except Exception:
-                # todo log error
-                traceback.print_exc(file=sys.stdout)
+            except Exception as e:
+                self.logger.exception(e)
 
         search_result.update({"total": total})
         return search_result
