@@ -1,27 +1,30 @@
-import sys
-import traceback
+from typing import TypeVar, List
 
+from app.types import SearchItem, Beer
+from app.logging import LoggerMixin
 from .scraper import UtappdScraper
 
+TUntappdClient = TypeVar("TUntappdClient", bound="UntappdClient")
 
-class UntappdClient:
+
+class UntappdClient(LoggerMixin):
     """A facade class used for untappd"""
 
     def __init__(self, parser: UtappdScraper):
+        super().__init__()
         self._parser = parser
 
-    def search_beer(self, beer_name):
+    def search_beer(self, beer_name: str) -> List[SearchItem]:
         """Performs searching beers by name"""
-        options = {"query": beer_name, "search_type": "beer", "sort": "all"}
         beers = []
         try:
-            result = self._parser.search(**options)
-            beers = result.get("entities", {}).values()
-        except Exception:
-            traceback.print_exc(file=sys.stdout)
+            result = self._parser.search(query=beer_name, search_type="beer", sort="all")
+            beers = result.entities
+        except Exception as e:
+            self.logger.exception(e)
         return beers
 
-    def get_beer(self, beer_id: int):
+    def get_beer(self, beer_id: int) -> Beer:
         return self._parser.get_beer(beer_id)
 
     def get_brewery(self, beer_id: int):
@@ -34,4 +37,4 @@ class UntappdClient:
         pass
 
 
-__all__ = ["UntappdClient"]
+__all__ = ["UntappdClient", "TUntappdClient"]

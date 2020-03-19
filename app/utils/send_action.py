@@ -1,13 +1,16 @@
 from functools import wraps
-from telegram import ChatAction
+from typing import Callable
+
+from telegram import ChatAction, Update
+from telegram.ext import CallbackContext
 
 
-def send_action(action):
+def send_action(action: ChatAction):
     """Sends `action` while processing function command."""
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def command_func(self, update, context, *args, **kwargs):
+        def command_func(self, update: Update, context: CallbackContext, *args, **kwargs) -> Callable:
             context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=action)
             return func(self, update, context, *args, **kwargs)
 

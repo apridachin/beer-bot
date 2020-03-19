@@ -7,7 +7,10 @@ load_dotenv(dotenv_path=env_path)
 
 TelegramToken = os.getenv("TELEGRAM_TOKEN")
 BreweryToken = os.getenv("BREWERY_TOKEN")
-Admins = os.getenv("ADMINS").split(",")
-Devs = list(map(lambda x: int(x), os.getenv("DEVS").split(",")))
+ADMINS = os.getenv("ADMINS")
+DEVS = os.getenv("DEVS")
 
-__all__ = ["TelegramToken", "BreweryToken", "Admins", "Devs"]
+admins = ADMINS.split(",") if ADMINS else []
+devs = list(map(lambda x: int(x), DEVS)) if DEVS else []
+
+__all__ = ["TelegramToken", "BreweryToken", "admins", "devs"]
