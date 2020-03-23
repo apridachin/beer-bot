@@ -16,12 +16,8 @@ class UntappdClient(LoggerMixin):
 
     def search_beer(self, beer_name: str) -> List[SearchItem]:
         """Performs searching beers by name"""
-        beers = []
-        try:
-            result = self._parser.search(query=beer_name, search_type="beer", sort="all")
-            beers = result.entities
-        except Exception as e:
-            self.logger.exception(e)
+        result = self._parser.search(query=beer_name, search_type="beer", sort="all")
+        beers = result.entities
         return beers
 
     def get_beer(self, beer_id: int) -> Beer:
