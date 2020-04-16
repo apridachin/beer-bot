@@ -31,7 +31,7 @@ class Beer:
     abv: TNumber
     ibu: TNumber
     rating: TNumber
-    raters: str
+    raters: float
     description: str
     brewery: Brewery
     similar: List[TNumber]

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Untappd Beer Search | Untappd</title>
+  <meta property="og:site_name" content="Untappd"/>
+
+  <meta name="description"
+        content="Looking for something on Untappd? Search to find any beer, brewery or venue on Untappd."/>
+  <meta name="viewport"
+        content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width"/>
+
+  <script type="text/javascript">
+    (function (b, r, a, n, c, h, _, s, d, k) {
+      if (!b[n] || !b[n]._q) {
+        for (; s < _.length;) c(h, _[s++])
+        d = r.createElement(a)
+        d.async = 1
+        d.src = 'https://cdn.branch.io/branch-latest.min.js'
+        k = r.getElementsByTagName(a)[0]
+        k.parentNode.insertBefore(d, k)
+        b[n] = h
+      }
+    })(window, document, 'script', 'branch', function (b, r) {b[r] = function () {b._q.push([r, arguments])}}, {
+      _q: [],
+      _v: 1
+    }, 'addListener applyCode banner closeBanner creditHistory credits data deepview deepviewCta first getCode init link logout redeem referrals removeListener sendSMS setIdentity track validateCode'.split(' '), 0)
+    branch.init('key_live_dkd8Nr651lqTGtpGipS2Bijfxrc1L2Mk')
+
+    branch.banner({
+      icon: 'https://untappd.akamaized.net/logos/ut_new_icon_44.png',
+      title: 'Untappd - Discover Beer',
+      description: 'Download the Untappd app today!',
+      position: 'bottom'
+    }, {})
+  </script>
+  <meta name="author" content="The Untappd Team"/>
+  <meta name="Copyright" content="Copyright Untappd 2020. All Rights Reserved."/>
+  <meta name="DC.title" content="Untappd"/>
+  <meta name="DC.subject"
+        content="Looking for something on Untappd? Search to find any beer, brewery or venue on Untappd."/>
+  <meta name="DC.creator" content="The Untappd Team"/>
+  <meta name="google-site-verification" content="EnR7QavTgiLCzZCCOv_OARCHsHhFwkwnJdG0Sti9Amg"/>
+  <meta name="bitly-verification" content="b3080898518a"/>
+
+  <link rel="apple-touch-icon" sizes="144x144" href="https://untappd.akamaized.net/assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="https://untappd.akamaized.net/assets/favicon-32x32-v2.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="https://untappd.akamaized.net/assets/favicon-16x16-v2.png" sizes="16x16">
+  <link rel="manifest" href="https://untappd.akamaized.net/assets/manifest.json">
+  <link rel="mask-icon" href="https://untappd.akamaized.net/assets/safari-pinned-tab.svg" color="#5bbad5">
+  <link id="canonical" rel="canonical" href="https://untappd.com/search">
+  <link rel="stylesheet" href="https://untappd.akamaized.net/assets/css/master.min.css?v=4.3.2"/>
+  <link rel="stylesheet" href="https://untappd.akamaized.net/assets/v3/css/style.css?v=4.3.2"/>
+  <link rel="stylesheet" href="https://untappd.akamaized.net/assets/design-system/css/styles.css?v=4.3.2"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp"
+        rel="stylesheet">
+  <script src="https://untappd.akamaized.net/assets/v3/js/common/min/site_common_min.js?v=2.5.7"></script>
+  <!--[if lte IE 7]>
+  <script src="https://untappd.akamaized.net/assets/js/ie6.js?v=2.5.7"></script><![endif]-->
+  <link rel="stylesheet" href="https://untappd.akamaized.net/assets/css/facybox.min.css?v=4.3.2"/>
+  <link rel="stylesheet" href="https://untappd.akamaized.net/assets/css/jquery.notifyBar.min.css?v=4.3.2"/>
+  <link rel="stylesheet" href="https://untappd.akamaized.net/assets/css/tipsy.min.css?v=4.3.2" type="text/css"
+        media="screen" title="no title" charset="utf-8">
+  <script type="text/javascript" language="Javascript">
+    $(document).ready(function () {
+      $('.tip').tipsy({ fade: true })
+      $('.badge_hint').tipsy({ gravity: 's', fade: true })
+      $('.disabled').tipsy({ gravity: 'n', fade: true })
+
+      refreshTime('.timezoner', 'D MMM YY', true)
+
+      $('.tab').click(function () {
+        $('.tab-area li').removeClass('active')
+        $(this).parent().addClass('active')
+        $('.list').hide()
+        $($(this).attr('href')).show()
+        return false
+      })
+    })
+
+  </script>
+
+  <script type="text/javascript" language="Javascript">
+    onChangeInterval = ''
+    if (!(window.console && console.log)) {
+      console = {
+        log: function () {},
+        debug: function () {},
+        info: function () {},
+        warn: function () {},
+        error: function () {}
+      }
+    }
+  </script>
+
+  <script type="text/javascript"
+          src="https://untappd.akamaized.net/assets/libs/js/algoliasearch.min.js?v2.5.7"></script>
+  <script type="text/javascript" src="https://untappd.akamaized.net/assets/libs/js/autocomplete.min.js?v2.5.7"></script>
+  <script type="text/javascript" src="https://untappd.akamaized.net/assets/libs/js/lodash.min.js?v2.5.7"></script>
+  <script type="text/javascript"
+          src="https://untappd.akamaized.net/assets/js/global/autosearch_tracking.min.js?v2.5.7"></script>
+  <script>
+    !function (e, a, t, n, s, i, c) {e.AlgoliaAnalyticsObject = s, e.aa = e.aa || function () {(e.aa.queue = e.aa.queue || []).push(arguments)}, i = a.createElement(t), c = a.getElementsByTagName(t)[0], i.async = 1, i.src = 'https://cdn.jsdelivr.net/npm/search-insights@0.0.14', c.parentNode.insertBefore(i, c)}(window, document, 'script', 0, 'aa')
+
+    // Initialize library
+    aa('init', {
+      applicationID: '9WBO4RQ3HO',
+      apiKey: '1d347324d67ec472bb7132c66aead485',
+    })
+  </script>
+  <script type="text/javascript" id="AdvallyRules" src="https://cdn.adligature.com/untappd/prod/rules.js"></script>
+</head>
+<style type="text/css">
+  .hidden {
+    display: none;
+  }
+
+  .main {
+    margin-top: 0px !important;
+  }
+</style>
+<script src="https://unpkg.com/feather-icons"></script>
+<body onunload="">
+<div id="mobile_nav_user">
+</div>
+<div id="mobile_nav_site">
+  <form class="search_box" method="get" action="/search">
+    <input type="text" class="track-focus search-input-desktop" autocomplete="off" data-track="desktop_search"
+           placeholder="Find a beer, brewery or bar..." name="q"/>
+    <input type="submit" value="Submit the form!"
+           style="position: absolute; top: 0; left: 0; z-index: 0; width: 1px; height: 1px; visibility: hidden;"/>
+    <div class="autocomplete">
+    </div>
+  </form>
+  <ul>
+    <li><a class="track-click" data-track="mobile_menu" data-href=":thepub" href="/thepub">The Pub</a></li>
+    <li><a class="track-click" data-track="mobile_menu" data-href=":beer/top_rated" href="/beer/top_rated">Top Rated</a>
+    </li>
+    <li><a class="track-click" data-track="mobile_menu" data-href=":supporter" href="/supporter">Supporter</a></li>
+    <li><a class="track-click" data-track="mobile_menu" data-href=":external/help" target="_blank"
+           href="http://help.untappd.com">Help</a></li>
+    <li><a class="track-click" data-track="mobile_menu" data-href=":sidebar/login" href="/login">Login</a></li>
+    <li><a class="track-click" data-track="mobile_menu" data-href=":sidebar/create" href="/create?source=mobilemenu">Sign
+      Up</a></li>
+  </ul>
+</div>
+<header>
+  <div class="inner">
+    <a class="track-click logo" data-track="desktop_header" data-href=":root" href="/">
+      <img src="https://untappd.akamaized.net/assets/v3/images/untappd-logo-2@2x.png" class="" alt="Untappd"/>
+    </a>
+    <div class="get_user_desktop">
+      <a class="sign_in track-click" data-track="mobile_header" data-href=":login"
+         href="/login?go_to=https://untappd.com/search">Sign In</a>
+      <a href="/create" class="join track_click" data-track="mobile_header" data-href=":create">Join Now</a>
+    </div>
+    <div onclick="trackMobileEvent('menu');" class="mobile_menu_btn">Menu</div>
+    <div id="nav_site">
+      <ul>
+        <li><a class="track-click" data-track="desktop_menu" data-href=":thepub" href="/thepub">The Pub</a></li>
+        <li><a class="track-click" data-track="desktop_menu" data-href=":beer/top_rated" href="/beer/top_rated">Top
+          Rated</a></li>
+        <li><a class="track-click" data-track="desktop_menu" data-href=":supporter" href="/supporter">Supporter</a></li>
+        <li><a class="track-click" data-track="desktop_menu" data-href=":external/help" target="_blank"
+               href="http://help.untappd.com">Help</a></li>
+      </ul>
+      <form class="search_box" method="get" action="/search">
+        <input type="text" class="track-focus search-input-desktop" autocomplete="off" data-track="desktop_search"
+               placeholder="Find a beer, brewery or bar..." name="q"/>
+        <input type="submit" value="Submit the form!"
+               style="position: absolute; top: 0; left: 0; z-index: 0; width: 1px; height: 1px; visibility: hidden;"/>
+        <div class="autocomplete">
+        </div>
+      </form>
+    </div>
+  </div>
+</header>
+<style type="text/css">
+  .ac-selected {
+    background-color: #f8f8f8;
+  }
+</style>
+<div class="nav_open_overlay"></div>
+<div id="slide">
+  <div class="announcement">
+    <div class="announcementInner">
+      Untappd is committed to supporting your local restaurants, pubs, and breweries during the COVID-19 Health Crisis.
+      <a href="http://untp.beer/gl_hbanner_0402" class="a-alert-link"><b>Learn More</b></a>
+    </div>
+    <div class="dismiss"><a href="#" class="hide-notice-banner" data-cookie-name="gregslist"><i
+            data-feather="x"></i></a></div>
+  </div>
+  <script>
+    $(document).ready(() => {
+      $('.hide-notice-banner').on('click', function (e) {
+        e.preventDefault()
+        $(this).parent().parent().slideUp()
+        $.post(`/account/hide_notice_wildcard`, { cookie: $(this).attr('data-cookie-name') }, (data) => {
+          console.log(data)
+        }).fail((err) => {
+          console.error(err)
+        })
+      })
+
+      $('.hide-notice-simple').on('click', function (e) {
+        e.preventDefault()
+        $(this).parent().parent().slideUp()
+      })
+
+      feather.replace()
+    })
+  </script>
+  <div class="leaderboard-ad">
+    <div class="AdvallyTag" data-slot="/21791133974/untappd/Top_Banner" id="div-untappd-header"
+         data-autosize="leaderboard"></div>
+  </div>
+  <div class="cont search-page">
+    <div class="main">
+      <div class="box">
+        <div class="results content">
+          <div class="search">
+            <form method="/search" method="get">
+              <input type="text" name="q" value="test"><span class="button yellow">Search<input type="submit"></span>
+              <input type="hidden" id="page-type" name="type" value="beer"/>
+              <input type="hidden" id="sort-type" name="sort" value="all"/>
+            </form>
+          </div>
+          <div class="filter">
+            <a href="#" data-filter="beer" class="active section-toggle track-click" data-track="search"
+               data-type="beer" data-href=":beer_toggle">
+              Beer
+            </a><a data-filter="brewery" class="section-toggle track-click" data-track="search" data-type="beer"
+                   data-href=":brewery_toggle" href="#">
+            Brewery
+          </a><a data-filter="venues" class="section-toggle track-click" data-track="search" data-type="beer"
+                 data-href=":venue_togle" href="#">
+            Venue
+          </a>
+          </div>
+          <div class="result-list beer-list">
+            <div class="results-list-top">
+              <p class="total"><strong>5143 beer</strong> results for <strong>"test"</strong></p>
+              <div class="sort">
+                <p>
+                  Sort by:
+                  <select id="sort_picker" data-type="beer">
+                    <option value="all" SELECTED="TRUE">Most Popular</option>
+                    <option value="beer_name_asc">Beer Name (Asc)</option>
+                    <option value="beer_name_desc">Beer Name (Desc)</option>
+                    <option value="brewery">Brewery Name</option>
+                    <option value="highest_abv">Highest ABV</option>
+                    <option value="lowest_abv">Lowest ABV</option>
+                  </select>
+                </p>
+              </div>
+            </div>
+            <div class="results-container">
+              <div class="beer-item ">
+                <a class="label" href="/beer/1569404">
+                  <img src="https://untappd.akamaized.net/site/beer_logos/beer-1569404_b0a9c_sm.jpeg">
+                </a>
+                <div class="beer-details">
+                  <p class="name"><a href="/b/brouwerij-de-koninck-lost-in-spice/1569404">Lost In Spice</a></p>
+                  <p class="brewery"><a href="/dekoninckbrewery">Brouwerij De Koninck</a></p>
+                  <p class="style">Spiced / Herbed Beer</p>
+                </div>
+                <div class="details beer">
+                  <p class="abv">
+                    5.2% ABV
+                  </p>
+                  <p class="ibu">
+                    18 IBU </p>
+                  <div class="rating">
+                    <div class="caps" data-rating="3.236">
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-20"></div>
+                      <div class="cap"></div>
+                    </div>
+                    <span class="num">(3.236)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="beer-item ">
+                <a class="label" href="/beer/3177687">
+                  <img src="https://untappd.akamaized.net/site/beer_logos/beer-3177687_7339e_sm.jpeg">
+                </a>
+                <div class="beer-details">
+                  <p class="name"><a href="/b/troegs-independent-brewing-field-study-ipa/3177687">Field Study IPA</a>
+                  </p>
+                  <p class="brewery"><a href="/troegsbrewingcompany">Tröegs Independent Brewing</a></p>
+                  <p class="style">IPA - American</p>
+                </div>
+                <div class="details beer">
+                  <p class="abv">
+                    6.2% ABV
+                  </p>
+                  <p class="ibu">
+                    N/A IBU
+                  </p>
+                  <div class="rating">
+                    <div class="caps" data-rating="3.795">
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-80"></div>
+                      <div class="cap"></div>
+                    </div>
+                    <span class="num">(3.795)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="beer-item ">
+                <a class="label" href="/beer/1504377">
+                  <img src="https://untappd.akamaized.net/site/beer_logos/beer-1504377_4f955_sm.jpeg">
+                </a>
+                <div class="beer-details">
+                  <p class="name"><a href="/b/blue-point-brewing-company-beach-plum-gose/1504377">Beach Plum Gose</a>
+                  </p>
+                  <p class="brewery"><a href="/BluePointBrewing">Blue Point Brewing Company</a></p>
+                  <p class="style">Sour - Gose</p>
+                </div>
+                <div class="details beer">
+                  <p class="abv">
+                    4.1% ABV
+                  </p>
+                  <p class="ibu">
+                    3 IBU </p>
+                  <div class="rating">
+                    <div class="caps" data-rating="3.603">
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-60"></div>
+                      <div class="cap"></div>
+                    </div>
+                    <span class="num">(3.603)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="beer-item ">
+                <a class="label" href="/beer/1128476">
+                  <img src="https://untappd.akamaized.net/site/beer_logos/beer-1128476_4980b_sm.jpeg">
+                </a>
+                <div class="beer-details">
+                  <p class="name"><a href="/b/back-pew-brewing-company-blue-testament/1128476">Blue Testament</a></p>
+                  <p class="brewery"><a href="/BackPewBrewingCompany">Back Pew Brewing Company</a></p>
+                  <p class="style">Pilsner - Other</p>
+                </div>
+                <div class="details beer">
+                  <p class="abv">
+                    5.2% ABV
+                  </p>
+                  <p class="ibu">
+                    29 IBU </p>
+                  <div class="rating">
+                    <div class="caps" data-rating="3.572">
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-60"></div>
+                      <div class="cap"></div>
+                    </div>
+                    <span class="num">(3.572)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="beer-item ">
+                <a class="label" href="/beer/2407213">
+                  <img src="https://untappd.akamaized.net/site/beer_logos/beer-2407213_d4268_sm.jpeg">
+                </a>
+                <div class="beer-details">
+                  <p class="name"><a href="/b/scheldebrouwerij-oma-corrie/2407213">Oma Corrie</a></p>
+                  <p class="brewery"><a href="/Scheldebrouwerij">Scheldebrouwerij</a></p>
+                  <p class="style">Belgian Strong Dark Ale</p>
+                </div>
+                <div class="details beer">
+                  <p class="abv">
+                    8.5% ABV
+                  </p>
+                  <p class="ibu">
+                    N/A IBU
+                  </p>
+                  <div class="rating">
+                    <div class="caps" data-rating="3.605">
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-100"></div>
+                      <div class="cap cap-60"></div>
+                      <div class="cap"></div>
+                    </div>
+                    <span class="num">(3.605)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="feed-block search-block">
+              <div class="feed-block-login">
+                <p><strong>Please sign in to view more.</strong></p>
+                <span>If you don’t have an account, <a href="/create?source=search">you can create one here</a>.</span>
+                <a href="/login?go_to=https%3A%2F%2Funtappd.com%2Fsearch%3Fq%3Dtest%26type%3Dbeer"
+                   class="yellow button">Sign In</a>
+              </div>
+              <div class="feed-block-fade"></div>
+              <div class="feed-block-item">
+                <div class="feed-block-avatar"></div>
+                <div class="feed-block-content">
+                  <p></p>
+                  <p></p>
+                  <p></p>
+                </div>
+              </div>
+              <div class="feed-block-item">
+                <div class="feed-block-avatar"></div>
+                <div class="feed-block-content">
+                  <p></p>
+                  <p></p>
+                  <p></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="box">
+        <div class="AdvallyTag" data-slot="/21791133974/untappd/Sidebar_Banner1" id="div-untappd-sidebar1"
+             data-size="300x250"></div>
+      </div>
+      <div class="box">
+        <div class="content">
+          <h3>Global Top Beers</h3>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/lagunitas-brewing-company-the-waldos-special-ale/45245" class="track-click"
+                 data-track="sidebar" data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-45245_2897d_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/lagunitas-brewing-company-the-waldos-special-ale/45245" class="track-click"
+                 data-track="sidebar" data-href=":beer/toplist"><span class="name">The Waldos' Special Ale</span></a>
+              <span class="brewery">Lagunitas Brewing Company</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/stone-brewing-stone-enjoy-by-04-20-ipa/3681630" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-3681630_20c78_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/stone-brewing-stone-enjoy-by-04-20-ipa/3681630" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">Stone Enjoy By 04.20 IPA</span></a>
+              <span class="brewery">Stone Brewing</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/grupo-modelo-corona-extra/5848" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-5848_e34c0_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/grupo-modelo-corona-extra/5848" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">Corona Extra</span></a>
+              <span class="brewery">Grupo Modelo</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/guinness-guinness-draught/4473" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-4473_1cbe8_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/guinness-guinness-draught/4473" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">Guinness Draught</span></a>
+              <span class="brewery">Guinness</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/founders-brewing-co-kentucky-breakfast-stout-kbs/9681" class="track-click"
+                 data-track="sidebar" data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-FoundersKBS.jpg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/founders-brewing-co-kentucky-breakfast-stout-kbs/9681" class="track-click"
+                 data-track="sidebar" data-href=":beer/toplist"><span class="name">Kentucky Breakfast Stout (KBS)</span></a>
+              <span class="brewery">Founders Brewing Co.</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/the-alchemist-heady-topper/4691" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-4691_eb933_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/the-alchemist-heady-topper/4691" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">Heady Topper</span></a>
+              <span class="brewery">The Alchemist</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/toppling-goliath-brewing-co-nugmo/3724450" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-3724450_89062_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/toppling-goliath-brewing-co-nugmo/3724450" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">NugMo</span></a>
+              <span class="brewery">Toppling Goliath Brewing Co.</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/brewdog-punk-ipa/5702" class="track-click" data-track="sidebar" data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-5702_3cbcc_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/brewdog-punk-ipa/5702" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">Punk IPA</span></a>
+              <span class="brewery">BrewDog</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/sierra-nevada-brewing-co-40th-hoppy-anniversary-ale/3584453" class="track-click"
+                 data-track="sidebar" data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-3584453_228e8_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/sierra-nevada-brewing-co-40th-hoppy-anniversary-ale/3584453" class="track-click"
+                 data-track="sidebar" data-href=":beer/toplist"><span class="name">40th Hoppy Anniversary Ale</span></a>
+              <span class="brewery">Sierra Nevada Brewing Co.</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/b/toppling-goliath-brewing-co-king-sue/594015" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist">
+                <img src="https://untappd.akamaized.net/site/beer_logos/beer-594015_1eee5_sm.jpeg">
+              </a>
+            </p>
+            <p class="text">
+              <a href="/b/toppling-goliath-brewing-co-king-sue/594015" class="track-click" data-track="sidebar"
+                 data-href=":beer/toplist"><span class="name">King Sue</span></a>
+              <span class="brewery">Toppling Goliath Brewing Co.</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="content">
+          <h3>Trending Locations</h3>
+          <div class="item">
+            <p class="logo">
+              <span>Verified</span> <a href="/v/untappd-at-home/9917985" class="track-click" data-track="sidebar"
+                                       data-href=":venue/toplist"><img
+                    src="https://untappd.akamaized.net/venuelogos/venue_9917985_b3a5d245_bg_176.png?v=1"></a>
+            </p>
+            <p class="text">
+              <a href="/v/untappd-at-home/9917985" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">Untappd at Home</span></a>
+              <span class="location">United States</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <span>Verified</span> <a href="/v/mcneilly-beer-6pk-hot-dog-shop/186908" class="track-click"
+                                       data-track="sidebar" data-href=":venue/toplist"><img
+                    src="https://untappd.akamaized.net/venuelogos/venue_186908_25674331_bg_176.png?v=1"></a>
+            </p>
+            <p class="text">
+              <a href="/v/mcneilly-beer-6pk-hot-dog-shop/186908" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">McNeilly Beer and Dogs</span></a>
+              <span class="location">Pittsburgh, PA </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <span>Verified</span> <a href="/v/goblet-beer-store-zg/9457305" class="track-click" data-track="sidebar"
+                                       data-href=":venue/toplist"><img
+                    src="https://untappd.akamaized.net/venuelogos/venue_9457305_bbe99511_bg_176.png?v=1"></a>
+            </p>
+            <p class="text">
+              <a href="/v/goblet-beer-store-zg/9457305" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">Goblet - Beer Store ZG</span></a>
+              <span class="location">Zagreb, Grad Zagreb </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/v/bella-s-penthouse/6425006" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><img
+                      src="https://ss3.4sqi.net/img/categories_v2/nightlife/default_bg_512.png"></a>
+            </p>
+            <p class="text">
+              <a href="/v/bella-s-penthouse/6425006" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">Bella's Penthouse</span></a>
+              <span class="location">San Diego, CA  </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <span>Verified</span> <a href="/v/device-brewing-company/1180007" class="track-click" data-track="sidebar"
+                                       data-href=":venue/toplist"><img
+                    src="https://untappd.akamaized.net/venuelogos/venue_1180007_6e57cd85_bg_176.png?v=1"></a>
+            </p>
+            <p class="text">
+              <a href="/v/device-brewing-company/1180007" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">Device Brewing Company</span></a>
+              <span class="location">Sacramento, CA </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/v/craftissimo/3557340" class="track-click" data-track="sidebar" data-href=":venue/toplist"><img
+                      src="https://ss3.4sqi.net/img/categories_v2/nightlife/beergarden_bg_512.png"></a>
+            </p>
+            <p class="text">
+              <a href="/v/craftissimo/3557340" class="track-click" data-track="sidebar" data-href=":venue/toplist"><span
+                      class="name">Craftissimo</span></a>
+              <span class="location">Sheung Wan, Hong Kong </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <span>Verified</span> <a href="/v/southside-beverage/5399571" class="track-click" data-track="sidebar"
+                                       data-href=":venue/toplist"><img
+                    src="https://untappd.akamaized.net/venuelogos/venue_5399571_418aab2a_bg_176.png?v=1"></a>
+            </p>
+            <p class="text">
+              <a href="/v/southside-beverage/5399571" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">Southside Beverage</span></a>
+              <span class="location">Amsterdam, NY </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/v/mcmeade-tavern-tea-house/6059542" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><img src="https://ss3.4sqi.net/img/categories_v2/nightlife/pub_bg_512.png"></a>
+            </p>
+            <p class="text">
+              <a href="/v/mcmeade-tavern-tea-house/6059542" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">McMeade Tavern & Tea House</span></a>
+              <span class="location">United States</span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/v/wok-n-roll/9939457" class="track-click" data-track="sidebar" data-href=":venue/toplist"><img
+                      src="https://ss3.4sqi.net/img/categories_v2/food/fastfood_bg_512.png"></a>
+            </p>
+            <p class="text">
+              <a href="/v/wok-n-roll/9939457" class="track-click" data-track="sidebar" data-href=":venue/toplist"><span
+                      class="name">Wok N Roll</span></a>
+              <span class="location">Lalitpur, Central Development Region </span></p>
+          </div>
+          <div class="item">
+            <p class="logo">
+              <a href="/v/the-jam-factorium/8398587" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><img
+                      src="https://ss3.4sqi.net/img/categories_v2/arts_entertainment/musicvenue_rockclub_bg_512.png"></a>
+            </p>
+            <p class="text">
+              <a href="/v/the-jam-factorium/8398587" class="track-click" data-track="sidebar"
+                 data-href=":venue/toplist"><span class="name">The Jam Factorium</span></a>
+              <span class="location">San Antonio, TX </span></p>
+          </div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="AdvallyTag" data-slot="/21791133974/untappd/Sidebar_Banner2" id="div-untappd-sidebar2"
+             data-size="300x600,300x250"></div>
+      </div>
+    </div>
+
+    <div class="add-beer-lightbox" style="display: none; position: fixed; background: #fff; z-index: 150;">
+      Loading...
+    </div>
+    <div class="facybox_hide facybox_overlayBG" id="facybox_overlay" style="display: none; opacity: 0.3;"></div>
+  </div>
+  <script>
+
+    $(document).ready(function () {
+      $(document).on('change', '#beer_type', function () {
+        if ($(this).val == '') {
+          $(this).addClass('empty')
+        } else {
+          $(this).removeClass('empty')
+        }
+      })
+
+      setTimeout(function () {
+        if ($('.sidebar').is(':visible')) {
+          var hC = $('.sidebar').height()
+          $('.main').css('min-height', hC)
+        }
+      }, 1000)
+
+    })
+
+  </script>
+  <script type="text/javascript" language="Javascript"
+          src="https://untappd.akamaized.net/assets/v3/js/search.js?v=2.5.7"></script>
+  <style type="text/css" media="screen">
+    .link-it {
+      color: #fff;
+      text-decoration: underline;
+      font-weight: 800;
+    }
+
+    .link-it:hover {
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .main-banner {
+      float: left;
+      text-align: left;
+      width: 80%;
+    }
+
+    .action-btn {
+      float: right;
+      text-align: right;
+      display: block;
+      margin-right: 12px;
+      margin-top: 7px;
+    }
+  </style>
+  <div class="announcement announcementPolicy tos-banner" data-banner="true">
+    <div class="announcementInner">Our <a class="link-it" href="/cookie">Cookie Policy</a>, <a class="link-it"
+                                                                                               href="/terms">Terms of
+      Service</a>, and <a class="link-it" href="/privacy">Privacy Policy</a> have been updated. By continuing to browse
+      our site you agree to these updates. For additonal information or feedback, visit <a class="link-it"
+                                                                                           href="https://help.untappd.com">help.untappd.com</a>
+    </div>
+    <a href="javascript:void(0);" onclick="Notice.hide();" class="track-click link-it" style="text-decoration: none;"
+       data-track="header" data-href=":/priavcy">I AGREE</a></p>
+    <div style="clear: both;"></div>
+  </div>
+  <script>
+    var Notice = {
+      hide: function (a) {
+
+        $('.tos-banner').slideUp()
+
+        $.ajax({
+          url: '/account/hide_notice?messageId=4',
+          type: 'GET',
+          dataType: 'json',
+          error: function (html) {
+
+          },
+          success: function (html) {
+
+          }
+        })
+
+        return false
+      }
+    }
+  </script>
+  <footer>
+    <div class="leaderboard-ad">
+      <div class="AdvallyTag" style="padding-bottom: 24px;" data-slot="/21791133974/untappd/Foot_Banner"
+           id="div-untappd-footer" data-autosize="leaderboard"></div>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-inner">
+        <ul>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/businesses"
+               href="https://untappd.com/business">Untappd for Business</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/breweries"
+               href="https://untappd.com/breweries">Breweries</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/store"
+               href="https://store.untappd.com/">Store</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/support" href="http://help.untappd.com/">Support</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/blog" href="http://blog.untappd.com/">Blog</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/badgevote"
+               href="https://untappd.com/uservote/badges">Badge Voting</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/careers" href="/careers">Careers</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/api" href="/api/">API</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/terms" href="/terms">Terms</a>
+          </li>
+          <li>
+            <a class="track-click" data-track="footer" data-href=":footer/privacy" href="/privacy">Privacy</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <ul class="social">
+      <li><a class="track-click" data-track="footer" data-href=":footer/social/twitter"
+             href="https://twitter.com/untappd" target="_blank"><img
+              src="https://untappd.akamaized.net/assets/custom/homepage/images/icon-twitter.svg"
+              alt="Icon twitter"/></a></li>
+      <li><a class="track-click" data-track="footer" data-href=":footer/social/facebook"
+             href="https://www.facebook.com/untappd/" target="_blank"><img
+              src="https://untappd.akamaized.net/assets/custom/homepage/images/icon-facebook.svg" alt="Icon facebook"/></a>
+      </li>
+      <li><a class="track-click" data-track="home" data-href=":footer/social/instagram"
+             href="https://www.instagram.com/untappd/" target="_blank"><img
+              src="https://untappd.akamaized.net/assets/custom/homepage/images/icon-instagram.svg"
+              alt="Icon instagram"/></a></li>
+    </ul>
+  </footer>
+  <script type="text/javascript">
+
+    // polyfill for ie11
+    function getUrlParameter (name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]')
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)')
+      var results = regex.exec(location.search)
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '))
+    }
+
+    $(document).ready(function () {
+      // remove any access tokens, perseve other elements
+      if (history.replaceState) {
+        if (location.href.indexOf('access_token=') >= 0) {
+          const accessTokenURL = getUrlParameter('access_token')
+          let currentURL = location.href
+          let finalURL = currentURL.replace(`access_token=${accessTokenURL}`, '')
+
+          // if the url has a "&" already in it, then remove the "?" and replace the first "&" with an "?"
+          if (finalURL.indexOf('&') >= 0) {
+            finalURL = finalURL.replace('?', '').replace('&', '?')
+          } else {
+            finalURL = finalURL.split('?')[0]
+          }
+
+          history.replaceState(null, '', finalURL)
+        }
+      }
+    })
+  </script>
+  <script type="text/javascript">
+    // Clear Text Feild
+    function clearText (thefield) {
+      if (thefield.defaultValue == thefield.value)
+        thefield.value = ''
+    }
+
+    var _gaq = _gaq || []
+    _gaq.push(['_setAccount', 'UA-11061050-10'])
+
+    _gaq.push(['_set', 'displayFeatures', true])
+
+    _gaq.push(['_setCustomVar',
+      1,             // This custom var is set to slot #1.  Required parameter.
+      'User Type',   // The name of the custom variable.  Required parameter.
+      'Visitor',      // Sets the value of "User Type" to "Member" or "Visitor" depending on status.  Required parameter.
+      2              // Sets the scope to session-level.  Optional parameter.
+    ])
+
+    _gaq.push(['_trackPageview']);
+
+    (function () {
+      var ga = document.createElement('script')
+      ga.type = 'text/javascript'
+      ga.async = true
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'
+      var s = document.getElementsByTagName('script')[0]
+      s.parentNode.insertBefore(ga, s)
+    })()
+
+  </script>
+  <script type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+      i['SLScoutObject'] = r
+      i[r] = i[r] || function () {
+        (i[r].q = i[r].q || []).push(arguments)
+      }, i[r].l = 1 * new Date()
+      a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0]
+      a.async = 1
+      a.src = g
+      m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://scout-cdn.salesloft.com/sl.js', 'slscout')
+    slscout(['init', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0IjoxMDEyOTV9.kyvVxzaXkHFioFsbKvRyKkXkv6AyP-mnE5iJJdlsMsU'])
+  </script>
+</body>
+</html>

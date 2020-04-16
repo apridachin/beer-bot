@@ -7,7 +7,7 @@ from app.logging import LoggerMixin
 from app.utils.fetch import simple_get
 
 
-class UtappdScraper(LoggerMixin):
+class UntappdScraper(LoggerMixin):
     """A class used to scrap and parse untappd.com in runtime"""
 
     def __init__(self, timeout: int) -> None:
@@ -22,7 +22,7 @@ class UtappdScraper(LoggerMixin):
         self.logger.info(f"search beer request {query} {search_type} {sort}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
         self.logger.info(f"search beer response for {query} {search_type} {sort}")
-        result = self.parse_search_page(response)
+        result: SearchResult = self._parse_search_page(response)
         return result
 
     def get_beer(self, beer_id: int) -> Beer:
@@ -31,7 +31,7 @@ class UtappdScraper(LoggerMixin):
         self.logger.info(f"get beer request {beer_id}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         self.logger.info(f"get beer response for {beer_id}")
-        result: Beer = self.parse_beer_page(beer_id, response)
+        result: Beer = self._parse_beer_page(beer_id, response)
         return result
 
     def get_brewery(self, brewery_id: int) -> BreweryFull:
@@ -40,32 +40,8 @@ class UtappdScraper(LoggerMixin):
         self.logger.info(f"get brewery request {brewery_id}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         self.logger.info(f"get brewery response for {brewery_id}")
-        result = self.parse_brewery_page(brewery_id, response)
+        result: BreweryFull = self._parse_brewery_page(brewery_id, response)
         return result
-
-    def parse_search_page(self, response) -> SearchResult:
-        """Performs searching beers by name"""
-        html = BeautifulSoup(response, "html.parser")
-        search_result = SearchResult(entities=[])
-
-        try:
-
-            total_text = html.find("p", class_="total").text.strip()
-            total = UtappdScraper.convert_to_float(total_text)
-            search_result.total = total
-
-            results = html.find_all("div", class_="beer-item")
-            for r in results:
-                item_text = r.find("a", class_="label")["href"].strip()
-                item_id = int(re.sub(r"\D", "", item_text))
-                item_name = r.find("p", class_="name").text.strip()
-                search_item = SearchItem(item_id, item_name)
-                search_result.entities.append(search_item)
-        except (AttributeError, KeyError) as e:
-            self.logger.exception(e)
-        else:
-            self.logger.info(f"Search page for was parsed successfully")
-        return search_result
 
     def crawl_search_page(self, search_type: TSearchType, response):
         """Crawling search results page by page"""
@@ -75,7 +51,7 @@ class UtappdScraper(LoggerMixin):
 
         try:
             total_text = html.find("p", class_="total").text.strip()
-            total = UtappdScraper.convert_to_float(total_text)
+            total = UntappdScraper._convert_to_float(total_text)
             search_result.total = total
 
             results = html.find_all("div", class_="beer-item")
@@ -94,7 +70,31 @@ class UtappdScraper(LoggerMixin):
             self.logger.info(f"Search for {search_result} was crawled successfully")
         return search_result
 
-    def parse_beer_page(self, beer_id, response):
+    def _parse_search_page(self, response) -> SearchResult:
+        """Performs searching beers by name"""
+        html = BeautifulSoup(response, "html.parser")
+        search_result = SearchResult(entities=[])
+
+        try:
+
+            total_text = html.find("p", class_="total").text.strip()
+            total = UntappdScraper._convert_to_float(total_text)
+            search_result.total = total
+
+            results = html.find_all("div", class_="beer-item")
+            for r in results:
+                item_text = r.find("a", class_="label")["href"].strip()
+                item_id = int(re.sub(r"\D", "", item_text))
+                item_name = r.find("p", class_="name").text.strip()
+                search_item = SearchItem(item_id, item_name)
+                search_result.entities.append(search_item)
+        except (AttributeError, KeyError) as e:
+            self.logger.exception(e)
+        else:
+            self.logger.info(f"Search page for was parsed successfully")
+        return search_result
+
+    def _parse_beer_page(self, beer_id, response):
         """Perform parsing untappd beer page"""
         html = BeautifulSoup(response, "html.parser")
         beer = None
@@ -105,12 +105,13 @@ class UtappdScraper(LoggerMixin):
             brewery_link = html.find("p", class_="brewery").find("a")["href"].replace("/", "").strip()
             style = html.find("p", class_="style").text.strip()
             abv_text = html.find("p", class_="abv").text.strip()
-            abv = UtappdScraper.convert_to_float(abv_text)
+            abv = UntappdScraper._convert_to_float(abv_text)
             ibu_text = html.find("p", class_="ibu").text.strip()
-            ibu = UtappdScraper.convert_to_float(ibu_text)
+            ibu = UntappdScraper._convert_to_float(ibu_text)
             rating_text = html.find("div", class_="caps")["data-rating"].strip()
-            rating = UtappdScraper.convert_to_float(rating_text)
-            raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
+            rating = UntappdScraper._convert_to_float(rating_text)
+            raters_text = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
+            raters = UntappdScraper._convert_to_float(raters_text)
             description = html.find("div", class_="beer-descrption-read-less").text.strip()
             similar_beer_items = html.find("h3", text="Similar Beers").parent.find_all(
                 "a", {"data-href": ":beer/similar"}
@@ -144,7 +145,7 @@ class UtappdScraper(LoggerMixin):
 
         return beer
 
-    def parse_brewery_page(self, brewery_id: int, response) -> BreweryFull:
+    def _parse_brewery_page(self, brewery_id: int, response) -> BreweryFull:
         """Perform parsing untappd brewery page"""
         html = BeautifulSoup(response, "html.parser")
         brewery = None
@@ -154,8 +155,11 @@ class UtappdScraper(LoggerMixin):
             location = html.find("p", class_="brewery").text.strip()
             style = html.find("p", class_="style").text.strip()
             rating = html.find("div", class_="caps")["data-rating"].strip()
+            rating = UntappdScraper._convert_to_float(rating)
             raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
+            raters = UntappdScraper._convert_to_float(raters)
             beers_count = html.find("p", class_="count").text.strip()
+            beers_count = UntappdScraper._convert_to_float(beers_count)
 
             brewery = BreweryFull(brewery_id, name, style, rating, raters, location, beers_count)
         except (AttributeError, KeyError) as e:
@@ -165,11 +169,11 @@ class UtappdScraper(LoggerMixin):
         return brewery
 
     @staticmethod
-    def convert_to_float(text: str) -> float:
+    def _convert_to_float(text: str) -> float:
         """Convert text to float"""
         string = re.sub(r"[^\d\.]", "", text)
-        result = float(string) if string else 0
+        result = round(float(string), 2) if string else 0.0
         return result
 
 
-__all__ = ["UtappdScraper"]
+__all__ = ["UntappdScraper"]

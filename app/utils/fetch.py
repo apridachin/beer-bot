@@ -1,5 +1,5 @@
 import logging
-from requests import get
+import requests
 from requests.exceptions import RequestException
 from contextlib import closing
 
@@ -12,7 +12,7 @@ def simple_get(url: str, options) -> bytes:
     """
     result = b""
     try:
-        with closing(get(url, stream=True, **options)) as resp:
+        with closing(requests.get(url, stream=True, **options)) as resp:
             if is_good_response(resp):
                 result = resp.content
     except RequestException as e:

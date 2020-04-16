@@ -2,7 +2,7 @@ from typing import TypeVar, List
 
 from app.types import SearchItem, Beer
 from app.logging import LoggerMixin
-from .scraper import UtappdScraper
+from .scraper import UntappdScraper
 
 TUntappdClient = TypeVar("TUntappdClient", bound="UntappdClient")
 
@@ -10,7 +10,7 @@ TUntappdClient = TypeVar("TUntappdClient", bound="UntappdClient")
 class UntappdClient(LoggerMixin):
     """A facade class used for untappd"""
 
-    def __init__(self, parser: UtappdScraper):
+    def __init__(self, parser: UntappdScraper):
         super().__init__()
         self._parser = parser
 
