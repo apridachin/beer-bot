@@ -2,4 +2,5 @@ from app.bot.beer_bot import BeerBot
 
 
 class TestBeerBot:
-    pass
+    def test_run(self):
+        pass

@@ -17,7 +17,7 @@ class UntappdSpider(scrapy.Spider):
 
 
 # check settings
-crawler_process = CrawlerProcess(settings={"FEED_FORMAT": "json", "FEED_URI": "items.json",})
+crawler_process = CrawlerProcess(settings={"FEED_FORMAT": "json", "FEED_URI": "items.json"})
 
 if __name__ == "__main__":
     default_options = {"query": "test", "type": "beer", "sort": "all"}

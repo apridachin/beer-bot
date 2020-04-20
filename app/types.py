@@ -35,7 +35,6 @@ class Beer:
     description: str
     brewery: Brewery
     similar: List[TNumber]
-    locations: List[TNumber]
 
 
 TBeerList = List[Beer]
@@ -57,3 +56,52 @@ class SearchResult:
 class CrawlResult:
     entities: List[Union[Beer, BreweryFull]]
     total: TNumber = 0
+
+
+@dataclass
+class ContactAPI:
+    twitter: str
+    facebook: str
+    url: str
+
+
+@dataclass
+class LocationAPI:
+    lat: float
+    lng: float
+
+
+@dataclass(frozen=True)
+class BreweryAPIShort:
+    id: int
+    name: str
+
+
+@dataclass(frozen=True)
+class BreweryAPI(BreweryAPIShort):
+    brewery_type: str
+    brewery_type_id: int
+    country: str
+    description: str
+    contact: ContactAPI
+    location: LocationAPI
+    rating: float
+    raters: int
+
+
+@dataclass(frozen=True)
+class SimilarAPI:
+    id: int
+    name: str
+
+
+SimilarAPIList = List[SimilarAPI]
+
+
+@dataclass(frozen=True)
+class BeerAPI(Beer):
+    brewery: BreweryAPIShort
+    similar: SimilarAPIList
+
+
+TBeerAPIList = List[BeerAPI]

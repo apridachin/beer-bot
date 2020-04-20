@@ -1,10 +1,12 @@
 import os
 import sys
+import asyncio
 import traceback
 from threading import Thread
 from requests import HTTPError
 from typing import List, TypeVar
 
+from telegram.ext.dispatcher import run_async
 from telegram import Update, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from telegram.ext import (
     Updater,
@@ -17,11 +19,10 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 
 from app.logging import LoggerMixin
-from app.types import Beer, TBeerList
+from app.types import BreweryAPI, BeerAPI, ContactAPI, TBeerAPIList
 from app.settings import TelegramToken, admins, devs
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
-from app.untappd.client import TUntappdClient
 
 TBeerBot = TypeVar("TBeerBot", bound="BeerBot")
 
@@ -29,9 +30,9 @@ TBeerBot = TypeVar("TBeerBot", bound="BeerBot")
 class BeerBot(LoggerMixin):
     """A class used as telegram bot which is chatting with users"""
 
-    def __init__(self, client: TUntappdClient) -> None:
+    def __init__(self, client) -> None:
         super().__init__()
-        self._client: TUntappdClient = client
+        self._client = client
         self.updater: Updater = Updater(token=TelegramToken, use_context=True)
         self.dispatcher = self.updater.dispatcher
 
@@ -71,12 +72,14 @@ class BeerBot(LoggerMixin):
         Thread(target=self.stop_and_restart).start()
         update.message.reply_text("Bot is ready! 🤖")
 
+    @run_async
     @send_typing_action
     def _show_handlers(self, update: Update, context: CallbackContext) -> None:
         """Show all available commands"""
         text: str = f"This is what you can ask me to do:\n" f"/search - find beer by name"
         context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
+    @run_async
     @send_typing_action
     def _unknown(self, update: Update, context: CallbackContext) -> None:
         """Send message if command is unknown"""
@@ -85,13 +88,14 @@ class BeerBot(LoggerMixin):
             chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command. 🤷",
         )
 
+    @run_async
     @send_typing_action
     def _search_beer(self, update: Update, context: CallbackContext) -> None:
         """Search beer by name and show a result"""
         user_message: str = update.message.text
         self.logger.info(f"Search {user_message}")
         beer_name: str = user_message.replace("/search ", "")
-        beers: TBeerList = self._client.search_beer(beer_name)
+        beers: TBeerAPIList = asyncio.new_event_loop().run_until_complete(self._client.search_beer(beer_name))
         if len(beers) > 1:
             self._show_options(update, context, beers)
         elif len(beers) == 1:
@@ -100,6 +104,7 @@ class BeerBot(LoggerMixin):
             self.logger.info(f"Beer was not found {beer_name}")
             self._not_found(update, context)
 
+    @run_async
     @send_typing_action
     def _not_found(self, update: Update, context: CallbackContext) -> None:
         """Send message that noting was found"""
@@ -107,70 +112,91 @@ class BeerBot(LoggerMixin):
         text: str = "Nothing found"
         context.bot.send_message(chat_id=chat_id, text=text)
 
+    @run_async
     @send_typing_action
-    def _send_beer(self, update: Update, context: CallbackContext, beer: Beer) -> None:
+    def _send_beer(self, update: Update, context: CallbackContext, beer: BeerAPI) -> None:
         """Send prepared beer to user"""
-        chat_id: str = update.effective_chat.id
         beer_id: str = beer.id
         text: str = self._parse_beer_to_html(beer)
+        self.put_beer(context, beer_id, beer)
         options: List[List[InlineKeyboardButton]] = [
-            [InlineKeyboardButton("Brewery", callback_data=f"info_{beer_id}_brewery")],
-            [InlineKeyboardButton("Similar", callback_data=f"info_{beer_id}_similar")],
-            [InlineKeyboardButton("Locations", callback_data=f"info_{beer_id}_locations")],
+            [
+                InlineKeyboardButton("Brewery", callback_data=f"info_{beer_id}_brewery"),
+                InlineKeyboardButton("Similar", callback_data=f"info_{beer_id}_similar"),
+            ]
         ]
         reply_markup = InlineKeyboardMarkup(options)
-        context.bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.HTML)
         context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Want to know more?", reply_markup=reply_markup,
+            chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML, reply_markup=reply_markup,
         )
         self.logger.info(f"Beer was sent {beer_id}")
 
+    @run_async
     @send_typing_action
-    def _show_options(self, update: Update, context: CallbackContext, beers: TBeerList) -> None:
+    def _show_options(self, update: Update, context: CallbackContext, beers: TBeerAPIList) -> None:
         """Send beer options to user"""
         beer_options: List[InlineKeyboardButton] = [
             InlineKeyboardButton(beer.name, callback_data=f"beer_{beer.id}") for beer in beers
         ]
         reply_markup = InlineKeyboardMarkup(build_menu(beer_options, n_cols=3))
-        context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Choose your destiny 💀", reply_markup=reply_markup,
-        )
+        if len(beer_options) > 0:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="Choose your destiny 💀", reply_markup=reply_markup,
+            )
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="Nothing found", reply_markup=reply_markup,
+            )
 
+    @run_async
     @send_typing_action
     def _select_beer(self, update: Update, context: CallbackContext) -> None:
         """Handler for choosing beer from search results"""
         query: CallbackQuery = update.callback_query
         beer_id = int(query.data.replace("beer_", ""))
         try:
-            beer: Beer = self._client.get_beer(beer_id)
+            beer: BeerAPI = asyncio.new_event_loop().run_until_complete(self._client.get_beer(beer_id))
             self._send_beer(update, context, beer)
             self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:
             self.logger.exception(f"Beer was not found {beer_id}")
             self._not_found(update, context)
 
+    @run_async
     @send_typing_action
     def _select_info(self, update: Update, context: CallbackContext) -> None:
         """Handler for choosing options from beer message"""
         query: CallbackQuery = update.callback_query
         [prefix, beer_id, command_name] = query.data.split("_")
-        client_mapping = {
-            "brewery": self._client.get_brewery,
-            "similar": self._client.get_similar,
-            "locations": self._client.get_locations,
-        }
-        parse_mapping = {
-            "brewery": self._parse_brewery,
-            "similar": self._parse_similar,
-            "locations": self._parse_locations,
-        }
 
+        if command_name == "brewery":
+            self.send_brewery(update, context, beer_id)
+        else:
+            self.send_similar(update, context, beer_id)
+
+    def send_brewery(self, update: Update, context: CallbackContext, beer_id: int) -> None:
         try:
-            result = client_mapping[command_name](beer_id)
-            text = parse_mapping[command_name]()
-            context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+            result = asyncio.new_event_loop().run_until_complete(self._client.get_brewery_by_beer(beer_id))
+            text = self._parse_brewery_to_html(result)
+            context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
+            self.send_brewery_location(update, context, result)
         except KeyError:
             self._not_found(update, context)
+
+    def send_similar(self, update: Update, context: CallbackContext, beer_id: int):
+        try:
+            beer = self.get_beer(context, beer_id)
+            similar = beer.similar
+            self._show_options(update, context, similar)
+        except AttributeError:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Nothing found")
+
+    def send_brewery_location(self, update: Update, context: CallbackContext, brewery: BreweryAPI) -> None:
+        text = "🧭 Location"
+        context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+        context.bot.send_location(
+            chat_id=update.effective_chat.id, latitude=brewery.location.lat, longitude=brewery.location.lng
+        )
 
     def handle_error(self, update: Update, context: CallbackContext):
         """Error handler, reply user and send traceback to devs"""
@@ -203,16 +229,42 @@ class BeerBot(LoggerMixin):
             context.bot.send_message(dev_id, text, parse_mode=ParseMode.HTML)
         raise
 
-    def _parse_brewery(self):
-        pass
+    def _parse_brewery_to_html(self, brewery: BreweryAPI) -> str:
+        """Preparing brewery for message"""
+        name = brewery.name
+        b_type = brewery.brewery_type
+        country = brewery.country
+        description = brewery.description
+        rating = brewery.rating
+        raters = brewery.raters
+        contact = brewery.contact
 
-    def _parse_similar(self):
-        pass
+        links = self._parse_contact_to_string(contact)
 
-    def _parse_locations(self):
-        pass
+        text = (
+            f'🏠🏠🏠 <b>"{name}"</b> 🏠🏠🏠\n'
+            f"\n️💅 <b>Type</b>:\n{b_type}\n"
+            f"\n🏴 <b>Country</b>:\n{country}\n"
+            f"\n️✍️ <b>Description</b>:\n{description}\n"
+            f"\n⭐️ <i>Rating {rating}\n👫 Raters {raters}</i> \n"
+            f"\n<b>Contacts</b>:\n{links}\n"
+        )
 
-    def _parse_beer_to_html(self, beer: Beer) -> str:
+        return text
+
+    def _parse_contact_to_string(self, contact: ContactAPI) -> str:
+        text = ""
+        try:
+            url = contact.url
+            twitter = contact.twitter
+            facebook = contact.facebook
+            text = f"️🕸 Site: {url}\n" f"💬 Twitter: {twitter}\n" f"🙍‍♀️Facebook: {facebook}\n"
+        except KeyError:
+            self.logger.error(f"Failed to parse brewery contact {contact}")
+        finally:
+            return text
+
+    def _parse_beer_to_html(self, beer: BeerAPI) -> str:
         """Preparing beer for message"""
         name = beer.name
         abv = beer.abv
@@ -233,3 +285,9 @@ class BeerBot(LoggerMixin):
         )
 
         return text
+
+    def put_beer(self, context: CallbackContext, key, value):
+        context.user_data[str(key)] = value
+
+    def get_beer(self, context: CallbackContext, key):
+        return context.user_data.get(key, {})
