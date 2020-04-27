@@ -15,14 +15,14 @@ class UntappdAPI(LoggerMixin):
     client_id = UntappdID
     client_token = UntappdToken
 
-    async def search_beer(self, query):
+    async def search_beer(self, query, limit: int = 1):
         url = (
             f"{UntappdAPI.base_url}/search/beer?q={query}&client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
         )
         beers = []
         async with ClientSession() as session:
             response = await async_fetch(session, url)
-            beers = await self._parse_beer_search(response, limit=1)
+            beers = await self._parse_beer_search(response, limit=limit)
         return beers
 
     async def search_brewery(self, query):
