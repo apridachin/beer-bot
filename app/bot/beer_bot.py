@@ -19,7 +19,7 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 
 from app.logging import LoggerMixin
-from app.types import BreweryAPI, BeerAPI, ContactAPI, TBeerAPIList
+from app.types import Brewery, Beer, Contact, TBeerAPIList
 from app.settings import TelegramToken, admins, devs
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
@@ -114,7 +114,7 @@ class BeerBot(LoggerMixin):
 
     @run_async
     @send_typing_action
-    def _send_beer(self, update: Update, context: CallbackContext, beer: BeerAPI) -> None:
+    def _send_beer(self, update: Update, context: CallbackContext, beer: Beer) -> None:
         """Send prepared beer to user"""
         beer_id: str = beer.id
         text: str = self._parse_beer_to_html(beer)
@@ -157,7 +157,7 @@ class BeerBot(LoggerMixin):
         try:
             beer = self.get_beer_context(context, beer_id)
             if beer is None:
-                beer: BeerAPI = asyncio.new_event_loop().run_until_complete(self._client.get_beer_context(beer_id))
+                beer: Beer = asyncio.new_event_loop().run_until_complete(self._client.get_beer_context(beer_id))
             self._send_beer(update, context, beer)
             self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:
@@ -196,7 +196,7 @@ class BeerBot(LoggerMixin):
         except AttributeError:
             context.bot.send_message(chat_id=update.effective_chat.id, text="Nothing found")
 
-    def send_brewery_location(self, update: Update, context: CallbackContext, brewery: BreweryAPI) -> None:
+    def send_brewery_location(self, update: Update, context: CallbackContext, brewery: Brewery) -> None:
         text = "🧭 Location"
         context.bot.send_message(chat_id=update.effective_chat.id, text=text)
         context.bot.send_location(
@@ -234,7 +234,7 @@ class BeerBot(LoggerMixin):
             context.bot.send_message(dev_id, text, parse_mode=ParseMode.HTML)
         raise
 
-    def _parse_brewery_to_html(self, brewery: BreweryAPI) -> str:
+    def _parse_brewery_to_html(self, brewery: Brewery) -> str:
         """Preparing brewery for message"""
         name = brewery.name
         b_type = brewery.brewery_type
@@ -257,7 +257,7 @@ class BeerBot(LoggerMixin):
 
         return text
 
-    def _parse_contact_to_string(self, contact: ContactAPI) -> str:
+    def _parse_contact_to_string(self, contact: Contact) -> str:
         text = ""
         try:
             url = contact.url
@@ -269,7 +269,7 @@ class BeerBot(LoggerMixin):
         finally:
             return text
 
-    def _parse_beer_to_html(self, beer: BeerAPI) -> str:
+    def _parse_beer_to_html(self, beer: Beer) -> str:
         """Preparing beer for message"""
         name = beer.name
         abv = beer.abv

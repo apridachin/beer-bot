@@ -11,13 +11,13 @@ from app.types import (
     TSearchType,
     CrawlResult,
     BreweryFull,
-    BeerAPI,
-    BreweryAPI,
-    BreweryAPIShort,
-    SimilarAPIList,
-    SimilarAPI,
-    LocationAPI,
-    ContactAPI,
+    Beer,
+    Brewery,
+    BreweryShort,
+    SimilarList,
+    Similar,
+    Location,
+    Contact,
 )
 from app.logging import LoggerMixin
 from app.utils.fetch import simple_get
@@ -50,13 +50,13 @@ class UntappdScraper(LoggerMixin):
         result: Beer = self._parse_beer_page(beer_id, response)
         return result
 
-    def get_brewery(self, brewery_id: int) -> BreweryAPI:
+    def get_brewery(self, brewery_id: int) -> Brewery:
         """Performs getting brewery by id"""
         url = f"{self.url}/brewery/{brewery_id}"
         self.logger.info(f"get brewery request {brewery_id}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         self.logger.info(f"get brewery response for {brewery_id}")
-        result: BreweryAPI = self._parse_brewery_page(brewery_id, response)
+        result: Brewery = self._parse_brewery_page(brewery_id, response)
         return result
 
     def crawl_search_page(self, search_type: TSearchType, response):
@@ -110,7 +110,7 @@ class UntappdScraper(LoggerMixin):
             self.logger.info(f"Search page for was parsed successfully")
         return search_result
 
-    def _parse_beer_page(self, beer_id, response):
+    def _parse_beer_page(self, beer_id, response) -> Beer:
         """Perform parsing untappd beer page"""
         html = BeautifulSoup(response, "html.parser")
         beer = None
@@ -131,11 +131,11 @@ class UntappdScraper(LoggerMixin):
             similar_beer_items = html.find("h3", text="Similar Beers").parent.find_all(
                 "a", {"data-href": ":beer/similar"}
             )
-            similar: SimilarAPIList = list(map(UntappdScraper._parse_similar_beer, similar_beer_items))
+            similar: SimilarList = list(map(UntappdScraper._parse_similar_beer, similar_beer_items))
 
             # todo fix brewery id
-            brewery = BreweryAPIShort(id=0, name=brewery_name)
-            beer = BeerAPI(
+            brewery = BreweryShort(id=0, name=brewery_name)
+            beer = Beer(
                 id=beer_id,
                 name=name,
                 style=style,
@@ -154,7 +154,7 @@ class UntappdScraper(LoggerMixin):
 
         return beer
 
-    def _parse_brewery_page(self, brewery_id: int, response) -> BreweryAPI:
+    def _parse_brewery_page(self, brewery_id: int, response) -> Brewery:
         """Perform parsing untappd brewery page"""
         html = BeautifulSoup(response, "html.parser")
         brewery = None
@@ -174,15 +174,15 @@ class UntappdScraper(LoggerMixin):
             url_item = html.find("a", class_="url tip")
             url = url_item["href"] if url_item else ""
 
-            brewery = BreweryAPI(
+            brewery = Brewery(
                 id=brewery_id,
                 name=name,
                 description=desc,
                 brewery_type=style,
                 rating=rating,
                 raters=raters,
-                location=LocationAPI(None, None),
-                contact=ContactAPI(twitter=tw, facebook=fb, url=url),
+                location=Location(None, None),
+                contact=Contact(twitter=tw, facebook=fb, url=url),
                 country="",
             )
         except (AttributeError, KeyError) as e:
@@ -192,10 +192,10 @@ class UntappdScraper(LoggerMixin):
         return brewery
 
     @staticmethod
-    def _parse_similar_beer(item) -> SimilarAPI:
+    def _parse_similar_beer(item) -> Similar:
         similar_id = UntappdScraper._convert_to_int(item["href"])
         similar_name = item.text.strip()
-        return SimilarAPI(similar_id, similar_name)
+        return Similar(similar_id, similar_name)
 
     @staticmethod
     def _convert_to_float(text: str) -> float:

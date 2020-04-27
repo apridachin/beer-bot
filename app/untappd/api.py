@@ -5,7 +5,7 @@ from aiohttp import ClientSession
 from app.logging import LoggerMixin
 from app.settings import UntappdID, UntappdToken
 from app.utils.fetch import async_fetch
-from app.types import BreweryAPIShort, ContactAPI, LocationAPI, BeerAPI, SimilarAPI, SimilarAPIList, BreweryAPI
+from app.types import BreweryShort, Contact, Location, Beer, Similar, SimilarList, Brewery
 
 
 class UntappdAPI(LoggerMixin):
@@ -33,7 +33,7 @@ class UntappdAPI(LoggerMixin):
             breweries = self._parse_brewery_search(response, limit=1)
         return breweries
 
-    async def get_beer(self, beer_id) -> BeerAPI:
+    async def get_beer(self, beer_id) -> Beer:
         url = f"https://api.untappd.com/v4/beer/info/{beer_id}?client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
         beer = {}
         async with ClientSession() as session:
@@ -42,7 +42,7 @@ class UntappdAPI(LoggerMixin):
             beer = self._parse_beer(raw_beer)
         return beer
 
-    async def get_brewery(self, brewery_id: int) -> BreweryAPI:
+    async def get_brewery(self, brewery_id: int) -> Brewery:
         url = f"https://api.untappd.com/v4/brewery/info/{brewery_id}?client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
         brewery = {}
         async with ClientSession() as session:
@@ -51,7 +51,7 @@ class UntappdAPI(LoggerMixin):
             brewery = self._parse_brewery(raw_brewery)
         return brewery
 
-    async def get_brewery_by_beer(self, beer_id: int) -> BreweryAPI:
+    async def get_brewery_by_beer(self, beer_id: int) -> Brewery:
         beer = await self.get_beer(beer_id)
         brewery_id = beer.brewery.id
         brewery = await self.get_brewery(brewery_id)
@@ -93,13 +93,13 @@ class UntappdAPI(LoggerMixin):
             self.logger.info(f"Successfully parse response {response}")
             return result
 
-    def _parse_beer(self, raw_beer) -> BeerAPI:
+    def _parse_beer(self, raw_beer) -> Beer:
         result = None
         try:
             self.logger.info(f"Try to parse response {raw_beer}")
             brewery = self._parse_beer_brewery(raw_beer["brewery"])
             similar = self._parse_similar(raw_beer["similar"]["items"])
-            result = BeerAPI(
+            result = Beer(
                 id=raw_beer["bid"],
                 name=raw_beer["beer_name"],
                 style=raw_beer["beer_style"],
@@ -117,23 +117,23 @@ class UntappdAPI(LoggerMixin):
             self.logger.info(f"Successfully parse response {result}")
             return result
 
-    def _parse_beer_brewery(self, raw_brewery) -> BreweryAPIShort:
+    def _parse_beer_brewery(self, raw_brewery) -> BreweryShort:
         result = None
         try:
             self.logger.info(f"Try to parse beer brewery {raw_brewery}")
-            result = BreweryAPIShort(id=raw_brewery["brewery_id"], name=raw_brewery["brewery_name"],)
+            result = BreweryShort(id=raw_brewery["brewery_id"], name=raw_brewery["brewery_name"],)
         except AttributeError as e:
             self.logger.error(f"Can not parse beer brewery, error: {e}")
         finally:
             self.logger.info(f"Successfully parse beer brewery {result}")
             return result
 
-    def _parse_similar(self, similar: []) -> SimilarAPIList:
+    def _parse_similar(self, similar: []) -> SimilarList:
         result = []
         try:
             for s in similar:
                 self.logger.info(f"Try to parse beer brewery {s}")
-                item = SimilarAPI(id=s["beer"]["bid"], name=s["beer"]["beer_name"])
+                item = Similar(id=s["beer"]["bid"], name=s["beer"]["beer_name"])
                 result.append(item)
         except AttributeError as e:
             self.logger.error(f"Can not parse response, error: {e}")
@@ -147,13 +147,13 @@ class UntappdAPI(LoggerMixin):
             self.logger.info(f"Try to parse brewery {raw_brewery}")
             raw_contact = raw_brewery["contact"]
             raw_location = raw_brewery["location"]
-            result = BreweryAPI(
+            result = Brewery(
                 id=raw_brewery["brewery_id"],
                 name=raw_brewery["brewery_name"],
-                contact=ContactAPI(
+                contact=Contact(
                     twitter=raw_contact["twitter"], facebook=raw_contact["facebook"], url=raw_contact["url"],
                 ),
-                location=LocationAPI(lat=raw_location["brewery_lat"], lng=raw_location["brewery_lng"]),
+                location=Location(lat=raw_location["brewery_lat"], lng=raw_location["brewery_lng"]),
                 brewery_type=raw_brewery["brewery_type"],
                 country=raw_brewery["country_name"],
                 rating=raw_brewery["rating"]["rating_score"],

@@ -7,40 +7,6 @@ TSort = Union[Literal["all"]]
 
 
 @dataclass(frozen=True)
-class Brewery:
-    name: str
-    link: str
-
-
-@dataclass(frozen=True)
-class BreweryFull:
-    id: int
-    name: str
-    style: str
-    rating: float
-    raters: float
-    location: str
-    beers_count: float
-
-
-@dataclass(frozen=True)
-class Beer:
-    id: str
-    name: str
-    style: str
-    abv: TNumber
-    ibu: TNumber
-    rating: TNumber
-    raters: float
-    description: str
-    brewery: Brewery
-    similar: List[TNumber]
-
-
-TBeerList = List[Beer]
-
-
-@dataclass(frozen=True)
 class SearchItem:
     id: int
     name: str
@@ -53,54 +19,62 @@ class SearchResult:
 
 
 @dataclass
-class CrawlResult:
-    entities: List[Union[Beer, BreweryFull]]
-    total: TNumber = 0
-
-
-@dataclass
-class ContactAPI:
+class Contact:
     twitter: Optional[str] = ""
     facebook: Optional[str] = ""
     url: Optional[str] = ""
 
 
 @dataclass
-class LocationAPI:
+class Location:
     lat: Optional[float] = None
     lng: Optional[float] = None
 
 
 @dataclass(frozen=True)
-class BreweryAPIShort:
+class BreweryShort:
     id: int
     name: str
 
 
 @dataclass(frozen=True)
-class BreweryAPI(BreweryAPIShort):
+class Brewery(BreweryShort):
     brewery_type: str
     country: str
     description: str
-    contact: ContactAPI
-    location: LocationAPI
+    contact: Contact
+    location: Location
     rating: float
     raters: int
 
 
 @dataclass(frozen=True)
-class SimilarAPI:
+class Similar:
     id: int
     name: str
 
 
-SimilarAPIList = List[SimilarAPI]
+SimilarList = List[Similar]
 
 
 @dataclass(frozen=True)
-class BeerAPI(Beer):
-    brewery: BreweryAPIShort
-    similar: SimilarAPIList
+class Beer:
+    id: str
+    name: str
+    style: str
+    abv: TNumber
+    ibu: TNumber
+    rating: TNumber
+    raters: float
+    description: str
+    brewery: BreweryShort
+    similar: SimilarList
 
 
-TBeerAPIList = List[BeerAPI]
+TBeerAPIList = List[Beer]
+
+
+@dataclass
+class CrawlResult:
+    entities: List[Union[Beer, Brewery]]
+    total: TNumber = 0
