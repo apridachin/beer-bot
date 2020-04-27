@@ -3,14 +3,11 @@ import re
 from bs4 import BeautifulSoup
 
 from app.types import (
-    Beer,
-    Brewery,
     SearchResult,
     SearchItem,
     TSort,
     TSearchType,
     CrawlResult,
-    BreweryFull,
     Beer,
     Brewery,
     BreweryShort,
