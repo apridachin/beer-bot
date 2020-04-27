@@ -118,7 +118,7 @@ class BeerBot(LoggerMixin):
         """Send prepared beer to user"""
         beer_id: str = beer.id
         text: str = self._parse_beer_to_html(beer)
-        self.put_beer(context, beer_id, beer)
+        self.put_beer_context(context, beer_id, beer)
         options: List[List[InlineKeyboardButton]] = [
             [
                 InlineKeyboardButton("Brewery", callback_data=f"info_{beer_id}_brewery"),
@@ -155,7 +155,9 @@ class BeerBot(LoggerMixin):
         query: CallbackQuery = update.callback_query
         beer_id = int(query.data.replace("beer_", ""))
         try:
-            beer: BeerAPI = asyncio.new_event_loop().run_until_complete(self._client.get_beer(beer_id))
+            beer = self.get_beer_context(context, beer_id)
+            if beer is None:
+                beer: BeerAPI = asyncio.new_event_loop().run_until_complete(self._client.get_beer_context(beer_id))
             self._send_beer(update, context, beer)
             self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:
@@ -176,7 +178,10 @@ class BeerBot(LoggerMixin):
 
     def send_brewery(self, update: Update, context: CallbackContext, beer_id: int) -> None:
         try:
-            result = asyncio.new_event_loop().run_until_complete(self._client.get_brewery_by_beer(beer_id))
+            result = self.get_brewery_context(context, beer_id)
+            if result is None:
+                result = asyncio.new_event_loop().run_until_complete(self._client.get_brewery_by_beer(beer_id))
+                self.put_brewery_context(context, beer_id, result)
             text = self._parse_brewery_to_html(result)
             context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
             self.send_brewery_location(update, context, result)
@@ -185,7 +190,7 @@ class BeerBot(LoggerMixin):
 
     def send_similar(self, update: Update, context: CallbackContext, beer_id: int):
         try:
-            beer = self.get_beer(context, beer_id)
+            beer = self.get_beer_context(context, beer_id)
             similar = beer.similar
             self._show_options(update, context, similar)
         except AttributeError:
@@ -286,8 +291,30 @@ class BeerBot(LoggerMixin):
 
         return text
 
-    def put_beer(self, context: CallbackContext, key, value):
+    def get_beer_key(self, key):
+        return f"beer_{key}"
+
+    def get_brewery_key(self, key):
+        return f"brewery_{key}"
+
+    def put_beer_context(self, context: CallbackContext, key, value):
+        beer_key = self.get_beer_key(key)
+        self.put_context_item(context, beer_key, value)
+
+    def get_beer_context(self, context: CallbackContext, key):
+        beer_key = self.get_beer_key(key)
+        return self.get_context_item(context, beer_key)
+
+    def put_brewery_context(self, context: CallbackContext, key, value):
+        beer_key = self.get_brewery_key(key)
+        self.put_context_item(context, beer_key, value)
+
+    def get_brewery_context(self, context: CallbackContext, key):
+        brewery_key = self.get_brewery_key(key)
+        return self.get_context_item(context, brewery_key)
+
+    def put_context_item(self, context: CallbackContext, key, value):
         context.user_data[str(key)] = value
 
-    def get_beer(self, context: CallbackContext, key):
-        return context.user_data.get(key, {})
+    def get_context_item(self, context: CallbackContext, key):
+        return context.user_data.get(key, None)
