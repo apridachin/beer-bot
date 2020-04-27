@@ -2,7 +2,23 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.types import Beer, Brewery, SearchResult, SearchItem, TSort, TSearchType, CrawlResult, BreweryFull
+from app.types import (
+    Beer,
+    Brewery,
+    SearchResult,
+    SearchItem,
+    TSort,
+    TSearchType,
+    CrawlResult,
+    BreweryFull,
+    BeerAPI,
+    BreweryAPI,
+    BreweryAPIShort,
+    SimilarAPIList,
+    SimilarAPI,
+    LocationAPI,
+    ContactAPI,
+)
 from app.logging import LoggerMixin
 from app.utils.fetch import simple_get
 
@@ -34,13 +50,13 @@ class UntappdScraper(LoggerMixin):
         result: Beer = self._parse_beer_page(beer_id, response)
         return result
 
-    def get_brewery(self, brewery_id: int) -> BreweryFull:
+    def get_brewery(self, brewery_id: int) -> BreweryAPI:
         """Performs getting brewery by id"""
         url = f"{self.url}/brewery/{brewery_id}"
         self.logger.info(f"get brewery request {brewery_id}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
         self.logger.info(f"get brewery response for {brewery_id}")
-        result: BreweryFull = self._parse_brewery_page(brewery_id, response)
+        result: BreweryAPI = self._parse_brewery_page(brewery_id, response)
         return result
 
     def crawl_search_page(self, search_type: TSearchType, response):
@@ -102,7 +118,6 @@ class UntappdScraper(LoggerMixin):
         try:
             name = html.find("h1").text.strip()
             brewery_name = html.find("p", class_="brewery").text.strip()
-            brewery_link = html.find("p", class_="brewery").find("a")["href"].replace("/", "").strip()
             style = html.find("p", class_="style").text.strip()
             abv_text = html.find("p", class_="abv").text.strip()
             abv = UntappdScraper._convert_to_float(abv_text)
@@ -116,16 +131,11 @@ class UntappdScraper(LoggerMixin):
             similar_beer_items = html.find("h3", text="Similar Beers").parent.find_all(
                 "a", {"data-href": ":beer/similar"}
             )
-            similar_beer_links = set([item["href"] for item in similar_beer_items])
-            similar_beers = [int(re.sub(r"\D", "", link)) for link in similar_beer_links]
-            location_items = html.find("h3", text=re.compile(".*Verified Locations.*")).parent.find_all(
-                "a", {"data-href": ":venue/toplist"}
-            )
-            locations_links = set([item["href"] for item in location_items])
-            locations = [int(re.sub(r"\D", "", location)) for location in locations_links]
+            similar: SimilarAPIList = list(map(UntappdScraper._parse_similar_beer, similar_beer_items))
 
-            brewery = Brewery(brewery_name, brewery_link)
-            beer = Beer(
+            # todo fix brewery id
+            brewery = BreweryAPIShort(id=0, name=brewery_name)
+            beer = BeerAPI(
                 id=beer_id,
                 name=name,
                 style=style,
@@ -135,8 +145,7 @@ class UntappdScraper(LoggerMixin):
                 raters=raters,
                 description=description,
                 brewery=brewery,
-                similar=similar_beers,
-                locations=locations,
+                similar=similar,
             )
         except (AttributeError, KeyError) as e:
             self.logger.exception(e)
@@ -145,23 +154,37 @@ class UntappdScraper(LoggerMixin):
 
         return beer
 
-    def _parse_brewery_page(self, brewery_id: int, response) -> BreweryFull:
+    def _parse_brewery_page(self, brewery_id: int, response) -> BreweryAPI:
         """Perform parsing untappd brewery page"""
         html = BeautifulSoup(response, "html.parser")
         brewery = None
 
         try:
             name = html.find("h1").text.strip()
-            location = html.find("p", class_="brewery").text.strip()
             style = html.find("p", class_="style").text.strip()
+            desc = html.find("div", class_="beer-descrption-read-less").text.strip()
             rating = html.find("div", class_="caps")["data-rating"].strip()
             rating = UntappdScraper._convert_to_float(rating)
             raters = html.find("p", class_="raters").text.replace("Ratings", "").replace(",", "").strip()
-            raters = UntappdScraper._convert_to_float(raters)
-            beers_count = html.find("p", class_="count").text.strip()
-            beers_count = UntappdScraper._convert_to_float(beers_count)
+            raters = UntappdScraper._convert_to_int(raters)
+            fb_item = html.find("a", class_="fb tip")
+            fb = fb_item["href"] if fb_item else ""
+            tw_item = html.find("a", class_="tw tip")
+            tw = tw_item["href"] if tw_item else ""
+            url_item = html.find("a", class_="url tip")
+            url = url_item["href"] if url_item else ""
 
-            brewery = BreweryFull(brewery_id, name, style, rating, raters, location, beers_count)
+            brewery = BreweryAPI(
+                id=brewery_id,
+                name=name,
+                description=desc,
+                brewery_type=style,
+                rating=rating,
+                raters=raters,
+                location=LocationAPI(None, None),
+                contact=ContactAPI(twitter=tw, facebook=fb, url=url),
+                country="",
+            )
         except (AttributeError, KeyError) as e:
             self.logger.exception(e)
         else:
@@ -169,10 +192,23 @@ class UntappdScraper(LoggerMixin):
         return brewery
 
     @staticmethod
+    def _parse_similar_beer(item) -> SimilarAPI:
+        similar_id = UntappdScraper._convert_to_int(item["href"])
+        similar_name = item.text.strip()
+        return SimilarAPI(similar_id, similar_name)
+
+    @staticmethod
     def _convert_to_float(text: str) -> float:
         """Convert text to float"""
         string = re.sub(r"[^\d\.]", "", text)
         result = round(float(string), 2) if string else 0.0
+        return result
+
+    @staticmethod
+    def _convert_to_int(text: str) -> int:
+        """Convert text to float"""
+        string = re.sub(r"[^\d\.]", "", text)
+        result = int(string) if string else 0
         return result
 
 

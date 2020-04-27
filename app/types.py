@@ -1,4 +1,4 @@
-from typing import List, Union, Literal
+from typing import List, Union, Literal, Optional
 from dataclasses import dataclass
 
 TNumber = Union[float, int]
@@ -60,15 +60,15 @@ class CrawlResult:
 
 @dataclass
 class ContactAPI:
-    twitter: str
-    facebook: str
-    url: str
+    twitter: Optional[str] = ""
+    facebook: Optional[str] = ""
+    url: Optional[str] = ""
 
 
 @dataclass
 class LocationAPI:
-    lat: float
-    lng: float
+    lat: Optional[float] = None
+    lng: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -80,7 +80,6 @@ class BreweryAPIShort:
 @dataclass(frozen=True)
 class BreweryAPI(BreweryAPIShort):
     brewery_type: str
-    brewery_type_id: int
     country: str
     description: str
     contact: ContactAPI

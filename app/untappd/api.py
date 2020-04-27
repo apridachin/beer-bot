@@ -33,7 +33,7 @@ class UntappdAPI(LoggerMixin):
             breweries = self._parse_brewery_search(response, limit=1)
         return breweries
 
-    async def get_beer(self, beer_id):
+    async def get_beer(self, beer_id) -> BeerAPI:
         url = f"https://api.untappd.com/v4/beer/info/{beer_id}?client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
         beer = {}
         async with ClientSession() as session:
@@ -93,7 +93,7 @@ class UntappdAPI(LoggerMixin):
             self.logger.info(f"Successfully parse response {response}")
             return result
 
-    def _parse_beer(self, raw_beer):
+    def _parse_beer(self, raw_beer) -> BeerAPI:
         result = None
         try:
             self.logger.info(f"Try to parse response {raw_beer}")
@@ -155,7 +155,6 @@ class UntappdAPI(LoggerMixin):
                 ),
                 location=LocationAPI(lat=raw_location["brewery_lat"], lng=raw_location["brewery_lng"]),
                 brewery_type=raw_brewery["brewery_type"],
-                brewery_type_id=raw_brewery["brewery_type_id"],
                 country=raw_brewery["country_name"],
                 rating=raw_brewery["rating"]["rating_score"],
                 raters=raw_brewery["rating"]["count"],
