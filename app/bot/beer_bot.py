@@ -1,6 +1,5 @@
 import os
 import sys
-import asyncio
 import traceback
 from threading import Thread
 from requests import HTTPError
@@ -19,7 +18,7 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 
 from app.logging import LoggerMixin
-from app.types import Brewery, Beer, Contact, TBeerAPIList
+from app.types import Brewery, Beer, Contact, BeerList
 from app.settings import TelegramToken, admins, devs
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
@@ -95,7 +94,7 @@ class BeerBot(LoggerMixin):
         user_message: str = update.message.text
         self.logger.info(f"Search {user_message}")
         beer_name: str = user_message.replace("/search ", "")
-        beers: TBeerAPIList = asyncio.new_event_loop().run_until_complete(self._client.search_beer(beer_name))
+        beers: BeerList = self._client.search_beer(beer_name)
         if len(beers) > 1:
             self._show_options(update, context, beers)
         elif len(beers) == 1:
@@ -133,7 +132,7 @@ class BeerBot(LoggerMixin):
 
     @run_async
     @send_typing_action
-    def _show_options(self, update: Update, context: CallbackContext, beers: TBeerAPIList) -> None:
+    def _show_options(self, update: Update, context: CallbackContext, beers: BeerList) -> None:
         """Send beer options to user"""
         beer_options: List[InlineKeyboardButton] = [
             InlineKeyboardButton(beer.name, callback_data=f"beer_{beer.id}") for beer in beers
@@ -157,7 +156,7 @@ class BeerBot(LoggerMixin):
         try:
             beer = self.get_beer_context(context, beer_id)
             if beer is None:
-                beer: Beer = asyncio.new_event_loop().run_until_complete(self._client.get_beer_context(beer_id))
+                beer: Beer = self._client.get_beer(beer_id)
             self._send_beer(update, context, beer)
             self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:
@@ -180,7 +179,7 @@ class BeerBot(LoggerMixin):
         try:
             result = self.get_brewery_context(context, beer_id)
             if result is None:
-                result = asyncio.new_event_loop().run_until_complete(self._client.get_brewery_by_beer(beer_id))
+                result = self._client.get_brewery_by_beer(beer_id)
                 self.put_brewery_context(context, beer_id, result)
             text = self._parse_brewery_to_html(result)
             context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)

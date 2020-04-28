@@ -5,7 +5,7 @@ from aiohttp import ClientSession
 from app.logging import LoggerMixin
 from app.settings import UntappdID, UntappdToken
 from app.utils.fetch import async_fetch
-from app.types import BreweryShort, Contact, Location, Beer, Similar, SimilarList, Brewery
+from app.types import BreweryShort, Contact, Location, Beer, Similar, SimilarList, Brewery, BeerList
 
 
 class UntappdAPI(LoggerMixin):
@@ -14,8 +14,9 @@ class UntappdAPI(LoggerMixin):
     base_url = "https://api.untappd.com/v4"
     client_id = UntappdID
     client_token = UntappdToken
+    auth_params = f"client_id={client_id}&client_secret={client_token}"
 
-    async def search_beer(self, query, limit: int = 1):
+    async def search_beer(self, query, limit: int = 1) -> BeerList:
         url = (
             f"{UntappdAPI.base_url}/search/beer?q={query}&client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
         )
@@ -57,13 +58,7 @@ class UntappdAPI(LoggerMixin):
         brewery = await self.get_brewery(brewery_id)
         return brewery
 
-    def get_similar(self, beer_id):
-        pass
-
-    def get_locations(self, beer_id):
-        pass
-
-    async def _parse_beer_search(self, response, limit: int = 3):
+    async def _parse_beer_search(self, response, limit: int = 3) -> BeerList:
         result = []
         try:
             self.logger.info(f"Try to parse response {response}")

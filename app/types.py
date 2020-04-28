@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 TNumber = Union[float, int]
 TSearchType = Union[Literal["beer"], Literal["brewery"]]
-TSort = Union[Literal["all"]]
 
 
 @dataclass(frozen=True)
@@ -71,7 +70,7 @@ class Beer:
     similar: SimilarList
 
 
-TBeerAPIList = List[Beer]
+BeerList = List[Beer]
 
 
 @dataclass

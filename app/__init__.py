@@ -7,7 +7,8 @@ from app.untappd.api import UntappdAPI
 logging.init_log()
 
 untapped_scrapper = UntappdScraper(timeout=10)
-untapped_client = UntappdAPI()
+untappd_api = UntappdAPI()
+untapped_client = UntappdClient(scraper=untapped_scrapper, api=untappd_api)
 beer_bot = BeerBot(client=untapped_client)
 
 

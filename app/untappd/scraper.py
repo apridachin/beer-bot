@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 from app.types import (
     SearchResult,
     SearchItem,
-    TSort,
     TSearchType,
     CrawlResult,
     Beer,
@@ -29,12 +28,21 @@ class UntappdScraper(LoggerMixin):
         self.url = "https://untappd.com"
         self._timeout = timeout
 
-    def search(self, query: str, search_type: TSearchType, sort: TSort) -> SearchResult:
-        """Performs searching with options"""
-        url = f"{self.url}/search?q={query}&type={search_type}&sort={sort}"
-        self.logger.info(f"search beer request {query} {search_type} {sort}")
+    def search_beer(self, query: str) -> SearchResult:
+        """Performs searching beer"""
+        url = f"{self.url}/search?q={query}&type=beer&sort=all"
+        self.logger.info(f"search beer request {query}")
         response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
-        self.logger.info(f"search beer response for {query} {search_type} {sort}")
+        self.logger.info(f"search beer response for {query}")
+        result: SearchResult = self._parse_search_page(response)
+        return result
+
+    def search_brewery(self, query: str) -> SearchResult:
+        """Performs searching brewery"""
+        url = f"{self.url}/search?q={query}&type=brewery&sort=all"
+        self.logger.info(f"search beer request {query}")
+        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
+        self.logger.info(f"search beer response for {query}")
         result: SearchResult = self._parse_search_page(response)
         return result
 
@@ -55,6 +63,15 @@ class UntappdScraper(LoggerMixin):
         self.logger.info(f"get brewery response for {brewery_id}")
         result: Brewery = self._parse_brewery_page(brewery_id, response)
         return result
+
+    def get_brewery_by_beer(self, beer_id: int) -> Brewery:
+        """Performs getting brewery by beer id"""
+        self.logger.info(f"get brewery by beer id {beer_id} request")
+        beer = self.get_beer(beer_id)
+        brewery_id = beer.brewery.id
+        brewery = self.get_brewery(brewery_id)
+        self.logger.info(f"get brewery by beer id {beer_id} response")
+        return brewery
 
     def crawl_search_page(self, search_type: TSearchType, response):
         """Crawling search results page by page"""
@@ -89,7 +106,6 @@ class UntappdScraper(LoggerMixin):
         search_result = SearchResult(entities=[])
 
         try:
-
             total_text = html.find("p", class_="total").text.strip()
             total = UntappdScraper._convert_to_float(total_text)
             search_result.total = total

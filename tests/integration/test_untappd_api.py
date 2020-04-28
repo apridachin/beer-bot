@@ -5,7 +5,7 @@ from app.untappd.api import UntappdAPI
 from dataclasses import asdict
 
 
-@pytest.mark.contracts
+@pytest.mark.integration
 class TestUntappdContracts:
     BEER_ID = 1569404
     BREWERY_ID = 405662

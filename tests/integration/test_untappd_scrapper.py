@@ -1,14 +1,14 @@
 import pytest
 
 from app.untappd.scraper import UntappdScraper
-from app.types import Brewery, Location, Beer, BreweryShort
+from app.types import Brewery, Beer, BreweryShort
 
 
-@pytest.mark.units
+@pytest.mark.integration
 class TestUntappdScraper:
     def test_search(self):
         scraper = UntappdScraper(timeout=10)
-        result = scraper.search(query="test", search_type="beer", sort="all")
+        result = scraper.search_beer(query="test")
         print(result)
 
         assert result is not None
