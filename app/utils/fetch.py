@@ -31,14 +31,15 @@ def is_good_response(resp) -> bool:
     return resp.status_code == 200 and content_type is not None and content_type.find("html") > -1
 
 
-async def async_fetch(session: ClientSession, url: str, **kwargs):
+async def async_get(url: str, **kwargs):
     """
     Async version of GET request with json parsing
     """
     logger = logging.getLogger()
     logger.info(f"Start request for {url}")
-    resp = await session.request(method="GET", url=url, **kwargs)
-    logger.info(f"Got response {resp.status} for URL: {url}")
-    resp.raise_for_status()
-    json = await resp.json()
-    return json
+    async with ClientSession() as session:
+        async with session.get(url, **kwargs) as response:
+            logger.info(f"Got response {response.status} for URL: {url}")
+            response.raise_for_status()
+            json = await response.json()
+            return json

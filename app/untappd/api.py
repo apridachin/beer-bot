@@ -1,10 +1,6 @@
-from typing import Callable
-
-from aiohttp import ClientSession
-
 from app.logging import LoggerMixin
 from app.settings import UntappdID, UntappdToken
-from app.utils.fetch import async_fetch
+from app.utils.fetch import async_get
 from app.types import BreweryShort, Contact, Location, Beer, Similar, SimilarList, Brewery, BeerList
 
 
@@ -17,39 +13,29 @@ class UntappdAPI(LoggerMixin):
     auth_params = f"client_id={client_id}&client_secret={client_token}"
 
     async def search_beer(self, query, limit: int = 1) -> BeerList:
-        url = (
-            f"{UntappdAPI.base_url}/search/beer?q={query}&client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
-        )
-        beers = []
-        async with ClientSession() as session:
-            response = await async_fetch(session, url)
-            beers = await self._parse_beer_search(response, limit=limit)
+        url = f"{UntappdAPI.base_url}/search/beer?q={query}&{UntappdAPI.auth_params}"
+        response = await async_get(url)
+        beers = await self._parse_beer_search(response, limit=limit)
         return beers
 
     async def search_brewery(self, query):
-        url = f"{UntappdAPI.base_url}/search/brewery?q={query}&client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
-        breweries = []
-        async with ClientSession() as session:
-            response = await async_fetch(session, url)
-            breweries = self._parse_brewery_search(response, limit=1)
+        url = f"{UntappdAPI.base_url}/search/brewery?q={query}&{UntappdAPI.auth_params}"
+        response = await async_get(url)
+        breweries = self._parse_brewery_search(response, limit=1)
         return breweries
 
     async def get_beer(self, beer_id) -> Beer:
-        url = f"https://api.untappd.com/v4/beer/info/{beer_id}?client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
-        beer = {}
-        async with ClientSession() as session:
-            response = await async_fetch(session, url)
-            raw_beer = response["response"]["beer"]
-            beer = self._parse_beer(raw_beer)
+        url = f"{UntappdAPI.base_url}/beer/info/{beer_id}?{UntappdAPI.auth_params}"
+        response = await async_get(url)
+        raw_beer = response["response"]["beer"]
+        beer = self._parse_beer(raw_beer)
         return beer
 
     async def get_brewery(self, brewery_id: int) -> Brewery:
-        url = f"https://api.untappd.com/v4/brewery/info/{brewery_id}?client_id={UntappdAPI.client_id}&client_secret={UntappdToken}"
-        brewery = {}
-        async with ClientSession() as session:
-            response = await async_fetch(session, url)
-            raw_brewery = response["response"]["brewery"]
-            brewery = self._parse_brewery(raw_brewery)
+        url = f"{UntappdAPI.base_url}/brewery/info/{brewery_id}?{UntappdAPI.auth_params}"
+        response = await async_get(url)
+        raw_brewery = response["response"]["brewery"]
+        brewery = self._parse_brewery(raw_brewery)
         return brewery
 
     async def get_brewery_by_beer(self, beer_id: int) -> Brewery:
@@ -160,8 +146,3 @@ class UntappdAPI(LoggerMixin):
         finally:
             self.logger.info(f"Successfully parse brewery {result}")
             return result
-
-    async def _get(self, url, parse_func: Callable):
-        async with ClientSession() as session:
-            response = await async_fetch(session, url)
-            return parse_func(response)
