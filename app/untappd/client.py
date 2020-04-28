@@ -19,52 +19,33 @@ class UntappdClient(LoggerMixin):
         self._api = api
         self._scraper = scraper
 
-    def search_beer(self, beer_name: str):
-        """Performs searching beers by name"""
-        result = []
+    def perform_action(self, action_name, default_result, *args, **kwargs):
+        api_action = getattr(self._api, action_name)
+        scrapper_action = getattr(self._scraper, action_name)
+        result = default_result
         try:
-            result = asyncio.new_event_loop().run_until_complete(self._api.search_beer(query=beer_name))
+            result = asyncio.new_event_loop().run_until_complete(api_action(*args, **kwargs))
         except HTTPException:
-            result = self._scraper.search_beer(query=beer_name).entities
+            result = scrapper_action(*args, **kwargs)
         finally:
             return result
+
+    def search_beer(self, beer_name: str):
+        """Performs searching beers by name"""
+        return self.perform_action("search_beer", [], beer_name)
 
     def search_brewery(self, brewery_name: str):
         """Performs searching beers by name"""
-        result = []
-        try:
-            result = asyncio.new_event_loop().run_until_complete(self._api.search_brewery(query=brewery_name))
-        except HTTPException:
-            result = self._scraper.search_brewery(query=brewery_name).entities
-        finally:
-            return result
+        return self.perform_action("search_brewery", [], brewery_name)
 
     def get_beer(self, beer_id: int) -> Beer:
-        result = None
-        try:
-            result = asyncio.new_event_loop().run_until_complete(self._api.get_beer(beer_id=beer_id))
-        except HTTPException:
-            result = self._scraper.get_beer(beer_id=beer_id)
-        finally:
-            return result
+        return self.perform_action("get_beer", None, beer_id)
 
     def get_brewery(self, brewery_id: int) -> Brewery:
-        result = None
-        try:
-            result = asyncio.new_event_loop().run_until_complete(self._api.get_brewery(brewery_id=brewery_id))
-        except HTTPException:
-            result = self._scraper.get_brewery(brewery_id=brewery_id)
-        finally:
-            return result
+        return self.perform_action("get_brewery", None, brewery_id)
 
     def get_brewery_by_beer(self, beer_id: int) -> Brewery:
-        result = None
-        try:
-            result = asyncio.new_event_loop().run_until_complete(self._api.get_brewery_by_beer(beer_id=beer_id))
-        except HTTPException:
-            result = self._scraper.get_brewery_by_beer(beer_id=beer_id)
-        finally:
-            return result
+        return self.perform_action("get_brewery_by_beer", None, beer_id)
 
 
 __all__ = ["UntappdClient", "TUntappdClient"]

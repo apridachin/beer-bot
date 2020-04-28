@@ -11,10 +11,7 @@ class SearchItem:
     name: str
 
 
-@dataclass
-class SearchResult:
-    entities: List[SearchItem]
-    total: TNumber = 0
+SearchResult = List[SearchItem]
 
 
 @dataclass

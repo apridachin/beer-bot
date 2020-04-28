@@ -75,23 +75,19 @@ class UntappdScraper(LoggerMixin):
         """Crawling search results page by page"""
 
         html = BeautifulSoup(response, "html.parser")
-        search_result = CrawlResult(entities=[])
+        search_result = []
 
         try:
-            total_text = html.find("p", class_="total").text.strip()
-            total = UntappdScraper._convert_to_float(total_text)
-            search_result.total = total
-
             results = html.find_all("div", class_="beer-item")
             for r in results:
                 item_text = r.find("a", class_="label")["href"].strip()
                 item_id = int(re.sub(r"\D", "", item_text))
                 if search_type == "beer":
                     beer = self.get_beer(item_id)
-                    search_result.entities.append(beer)
+                    search_result.append(beer)
                 else:
                     brewery = self.get_brewery(item_id)
-                    search_result.entities.append(brewery)
+                    search_result.append(brewery)
         except (AttributeError, KeyError) as e:
             self.logger.exception(e)
         else:
@@ -101,20 +97,16 @@ class UntappdScraper(LoggerMixin):
     def _parse_search_page(self, response) -> SearchResult:
         """Performs searching beers by name"""
         html = BeautifulSoup(response, "html.parser")
-        search_result = SearchResult(entities=[])
+        search_result: SearchResult = []
 
         try:
-            total_text = html.find("p", class_="total").text.strip()
-            total = UntappdScraper._convert_to_float(total_text)
-            search_result.total = total
-
             results = html.find_all("div", class_="beer-item")
             for r in results:
                 item_text = r.find("a", class_="label")["href"].strip()
                 item_id = int(re.sub(r"\D", "", item_text))
                 item_name = r.find("p", class_="name").text.strip()
                 search_item = SearchItem(item_id, item_name)
-                search_result.entities.append(search_item)
+                search_result.append(search_item)
         except (AttributeError, KeyError) as e:
             self.logger.exception(e)
         else:
