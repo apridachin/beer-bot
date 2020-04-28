@@ -1,9 +1,9 @@
-from typing import TypeVar, List
+from typing import TypeVar
 
 import asyncio
 from aiohttp.web import HTTPException
 
-from app.types import SearchItem, Beer, Brewery
+from app.types import Beer, Brewery
 from app.logging import LoggerMixin
 from .scraper import UntappdScraper
 from .api import UntappdAPI

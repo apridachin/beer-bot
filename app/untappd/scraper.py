@@ -28,39 +28,37 @@ class UntappdScraper(LoggerMixin):
         self.url = "https://untappd.com"
         self._timeout = timeout
 
+    def request(self, url):
+        self.logger.info(f"Start request for {url}")
+        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
+        self.logger.info(f"Got response {response} for {url}")
+        return response
+
     def search_beer(self, query: str) -> SearchResult:
         """Performs searching beer"""
         url = f"{self.url}/search?q={query}&type=beer&sort=all"
-        self.logger.info(f"search beer request {query}")
-        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
-        self.logger.info(f"search beer response for {query}")
+        response = self.request(url)
         result: SearchResult = self._parse_search_page(response)
         return result
 
     def search_brewery(self, query: str) -> SearchResult:
         """Performs searching brewery"""
         url = f"{self.url}/search?q={query}&type=brewery&sort=all"
-        self.logger.info(f"search beer request {query}")
-        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}, "timeout": self._timeout})
-        self.logger.info(f"search beer response for {query}")
+        response = self.request(url)
         result: SearchResult = self._parse_search_page(response)
         return result
 
     def get_beer(self, beer_id: int) -> Beer:
         """Performs getting beers by id"""
         url = f"{self.url}/beer/{beer_id}"
-        self.logger.info(f"get beer request {beer_id}")
-        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
-        self.logger.info(f"get beer response for {beer_id}")
+        response = self.request(url)
         result: Beer = self._parse_beer_page(beer_id, response)
         return result
 
     def get_brewery(self, brewery_id: int) -> Brewery:
         """Performs getting brewery by id"""
         url = f"{self.url}/brewery/{brewery_id}"
-        self.logger.info(f"get brewery request {brewery_id}")
-        response = simple_get(url, options={"headers": {"User-agent": "BakhusBot"}})
-        self.logger.info(f"get brewery response for {brewery_id}")
+        response = self.request(url)
         result: Brewery = self._parse_brewery_page(brewery_id, response)
         return result
 
