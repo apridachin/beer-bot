@@ -1,7 +1,7 @@
 import pytest
 
 from app.untappd.scraper import UntappdScraper
-from app.types import Brewery, Beer, BreweryShort
+from app.entities import Brewery, Beer, BreweryShort
 
 
 @pytest.mark.integration

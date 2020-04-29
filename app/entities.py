@@ -53,7 +53,7 @@ class Similar:
 SimilarList = List[Similar]
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Beer:
     id: str
     name: str
@@ -65,6 +65,16 @@ class Beer:
     description: str
     brewery: BreweryShort
     similar: SimilarList
+
+    def set_brewery(self, brewery: {}):
+        self.brewery = BreweryShort(**brewery)
+
+    def set_similar(self, similar: []):
+        s_list = []
+        for item in similar:
+            s = Similar(**item)
+            s_list.append(s)
+        self.similar = s_list
 
 
 BeerList = List[Beer]

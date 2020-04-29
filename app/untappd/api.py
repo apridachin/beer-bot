@@ -1,15 +1,15 @@
 from app.logging import LoggerMixin
-from app.settings import UntappdID, UntappdToken
+from app.settings import UNTAPPD_ID, UNTAPPD_TOKEN
 from app.utils.fetch import async_get
-from app.types import BreweryShort, Contact, Location, Beer, Similar, SimilarList, Brewery, BeerList
+from app.entities import BreweryShort, Contact, Location, Beer, Similar, SimilarList, Brewery, BeerList
 
 
 class UntappdAPI(LoggerMixin):
     """ API client for Untappd.com """
 
     base_url = "https://api.untappd.com/v4"
-    client_id = UntappdID
-    client_token = UntappdToken
+    client_id = UNTAPPD_ID
+    client_token = UNTAPPD_TOKEN
     auth_params = f"client_id={client_id}&client_secret={client_token}"
 
     async def search_beer(self, query, limit: int = 1) -> BeerList:
@@ -113,7 +113,7 @@ class UntappdAPI(LoggerMixin):
         result = []
         try:
             for s in similar:
-                self.logger.info(f"Try to parse beer brewery {s}")
+                self.logger.info(f"Try to parse beer similar {s}")
                 item = Similar(id=s["beer"]["bid"], name=s["beer"]["beer_name"])
                 result.append(item)
         except AttributeError as e:

@@ -2,11 +2,10 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.types import (
+from app.entities import (
     SearchResult,
     SearchItem,
     TSearchType,
-    CrawlResult,
     Beer,
     Brewery,
     BreweryShort,

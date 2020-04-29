@@ -18,8 +18,8 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 
 from app.logging import LoggerMixin
-from app.types import Brewery, Beer, Contact, BeerList
-from app.settings import TelegramToken, admins, devs
+from app.entities import Brewery, Beer, Contact, BeerList
+from app.settings import TELEGRAM_TOKEN, admins, devs
 from app.utils.build_menu import build_menu
 from app.utils.send_action import send_typing_action
 
@@ -32,7 +32,7 @@ class BeerBot(LoggerMixin):
     def __init__(self, client) -> None:
         super().__init__()
         self._client = client
-        self.updater: Updater = Updater(token=TelegramToken, use_context=True)
+        self.updater: Updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
         self.dispatcher = self.updater.dispatcher
 
         # Commands

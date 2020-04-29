@@ -3,7 +3,7 @@ import logging
 
 def init_log():
     logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
 
