@@ -4,6 +4,7 @@ from dataclasses import asdict
 
 import asyncio
 from aiohttp.web import HTTPException
+from redis.exceptions import ConnectionError
 
 from app.entities import Beer, Brewery
 from app.logging import LoggerMixin
@@ -46,10 +47,10 @@ class UntappdClient(LoggerMixin):
         try:
             result = self.get_from_cache(beer_id)
             if result is None:
-                self.logger.info(f"Try to get beer from api {beer_id}")
-                result = self.perform_action("get_beer", None, beer_id)
-                success = self.set_to_cache(beer_id, result)
-                self.logger.info(f"Set redis cache {beer_id} {success}")
+                result = self.get_beer_from_api(beer_id)
+        except ConnectionError as e:
+            self.logger.error(f"Can't connect to redis cache: {e}")
+            result = self.get_beer_from_api(beer_id)
         except HTTPException:
             self.logger.error(f"Can't get beer {beer_id}")
         finally:
@@ -60,6 +61,17 @@ class UntappdClient(LoggerMixin):
 
     def get_brewery_by_beer(self, beer_id: int) -> Brewery:
         return self.perform_action("get_brewery_by_beer", None, beer_id)
+
+    def get_beer_from_api(self, beer_id):
+        self.logger.info(f"Try to get beer from api {beer_id}")
+        result = self.perform_action("get_beer", None, beer_id)
+        try:
+            success = self.set_to_cache(beer_id, result)
+            self.logger.info(f"Set redis cache {beer_id} {success}")
+        except ConnectionError as e:
+            self.logger.error(f"Can't connect to redis {e}")
+        finally:
+            return result
 
     def get_from_cache(self, key):
         self.logger.info(f"Check redis cache {key}")

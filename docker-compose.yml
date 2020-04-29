@@ -1,17 +1,30 @@
 version: '3'
 services:
-  postgres:
-    image: postgres:latest
-    env_file:
-      - .env
-    volumes:
-      - ./database/pg-data:/var/lib/postgresql/data/
-    ports:
-      - "5432:5432"
+#  postgres:
+#    image: postgres:latest
+#    env_file:
+#      - .env
+#    volumes:
+#      - ./database/pg-data:/var/lib/postgresql/data/
+#    ports:
+#      - "5432:5432"
   redis:
     image: redis:latest
     ports:
       - 6379:6379
+    networks:
+      - bot
     volumes:
-      - ./config/redis.conf:/redis.conf
+      - ./docker/redis/redis.conf:/redis.conf
     command: [ "redis-server", "/redis.conf" ]
+  bot:
+    image: bakhus-bot
+    command: python run.py
+    environment:
+      - REDIS_URL=redis
+    depends_on:
+      - redis
+    networks:
+      - bot
+networks:
+  bot:

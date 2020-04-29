@@ -162,6 +162,9 @@ class BeerBot(LoggerMixin):
         except HTTPError:
             self.logger.exception(f"Beer was not found {beer_id}")
             self._not_found(update, context)
+        except AttributeError:
+            self.logger.exception(f"Failed sending beer {beer_id}")
+            self._not_found(update, context)
 
     @run_async
     @send_typing_action
