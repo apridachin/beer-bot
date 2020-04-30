@@ -27,13 +27,13 @@ class Location:
     lng: Optional[float] = None
 
 
-@dataclass(frozen=True)
+@dataclass()
 class BreweryShort:
     id: int
     name: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Brewery(BreweryShort):
     brewery_type: str
     country: str
@@ -42,6 +42,12 @@ class Brewery(BreweryShort):
     location: Location
     rating: float
     raters: int
+
+    def set_location(self, location: {}):
+        self.location = Location(**location)
+
+    def set_contact(self, contact: {}):
+        self.contact = Contact(**contact)
 
 
 @dataclass(frozen=True)

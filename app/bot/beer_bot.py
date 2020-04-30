@@ -156,7 +156,7 @@ class BeerBot(LoggerMixin):
         try:
             beer = self.get_beer_context(context, beer_id)
             if beer is None:
-                beer: Beer = self._client.get_beer(beer_id)
+                beer: Beer = self._client.get_item(beer_id, item_type="beer")
             self._send_beer(update, context, beer)
             self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:

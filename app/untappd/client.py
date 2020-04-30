@@ -1,10 +1,10 @@
 import json
-from typing import TypeVar
+from typing import TypeVar, Literal
 from dataclasses import asdict
 
 import asyncio
 from aiohttp.web import HTTPException
-from redis.exceptions import ConnectionError
+from redis.exceptions import RedisError
 
 from app.entities import Beer, Brewery
 from app.logging import LoggerMixin
@@ -12,6 +12,7 @@ from .scraper import UntappdScraper
 from .api import UntappdAPI
 
 TUntappdClient = TypeVar("TUntappdClient", bound="UntappdClient")
+TItem = Literal["beer", "brewery"]
 
 
 class UntappdClient(LoggerMixin):
@@ -42,44 +43,48 @@ class UntappdClient(LoggerMixin):
         """Performs searching beers by name"""
         return self.perform_action("search_brewery", [], brewery_name)
 
-    def get_beer(self, beer_id: int) -> Beer:
+    def get_item(self, item_id: int, item_type: TItem):
         result = None
         try:
-            result = self.get_from_cache(beer_id)
+            key = f"{item_type}_{item_id}"
+            result = self.get_from_cache(key)
             if result is None:
-                result = self.get_beer_from_api(beer_id)
-        except ConnectionError as e:
+                result = self.get_from_api(item_id, item_type)
+        except RedisError as e:
             self.logger.error(f"Can't connect to redis cache: {e}")
-            result = self.get_beer_from_api(beer_id)
+            result = self.get_from_api(item_id, item_type)
         except HTTPException:
-            self.logger.error(f"Can't get beer {beer_id}")
+            self.logger.error(f"Can't get {item_type} {item_id}")
         finally:
             return result
-
-    def get_brewery(self, brewery_id: int) -> Brewery:
-        return self.perform_action("get_brewery", None, brewery_id)
 
     def get_brewery_by_beer(self, beer_id: int) -> Brewery:
         return self.perform_action("get_brewery_by_beer", None, beer_id)
 
-    def get_beer_from_api(self, beer_id):
-        self.logger.info(f"Try to get beer from api {beer_id}")
-        result = self.perform_action("get_beer", None, beer_id)
+    def get_from_api(self, item_id: int, item_type: TItem):
+        self.logger.info(f"Try to get {item_type} from api {item_id}")
+        result = self.perform_action(f"get_{item_type}", None, item_id)
         try:
-            success = self.set_to_cache(beer_id, result)
-            self.logger.info(f"Set redis cache {beer_id} {success}")
-        except ConnectionError as e:
+            key = f"{item_type}_{item_id}"
+            success = self.set_to_cache(key, result)
+            self.logger.info(f"Set redis cache {item_type} {item_id} {success}")
+        except RedisError as e:
             self.logger.error(f"Can't connect to redis {e}")
         finally:
             return result
 
-    def get_from_cache(self, key):
+    def get_from_cache(self, key: str):
         self.logger.info(f"Check redis cache {key}")
         result = None
         response = self._cache.get(key)
         if response is not None:
             self.logger.info(f"Try to parse redis response {response}")
-            result = self.prepare_beer(response)
+            if key.startswith("beer"):
+                result = self.prepare_beer(response)
+            elif key.startswith("brewery"):
+                result = self.prepare_brewery(response)
+            else:
+                result = response
             self.logger.info(f"Parse redis response successfully {result}")
         return result
 
@@ -87,13 +92,22 @@ class UntappdClient(LoggerMixin):
         cache_value = json.dumps(asdict(value))
         return self._cache.set(key, cache_value)
 
-    def prepare_beer(self, response):
-        beer_dict = json.loads(response)
-        brewery_dict = beer_dict["brewery"]
-        similar_list = beer_dict["similar"]
-        result = Beer(**beer_dict)
-        result.set_brewery(brewery_dict)
-        result.set_similar(similar_list)
+    def prepare_beer(self, response) -> Beer:
+        beer = json.loads(response)
+        brewery = beer["brewery"]
+        similar = beer["similar"]
+        result = Beer(**beer)
+        result.set_brewery(brewery)
+        result.set_similar(similar)
+        return result
+
+    def prepare_brewery(self, response) -> Brewery:
+        brewery = json.loads(response)
+        location = brewery["location"]
+        contact = brewery["contact"]
+        result = Brewery(**brewery)
+        result.set_location(location)
+        result.set_contact(contact)
         return result
 
 
