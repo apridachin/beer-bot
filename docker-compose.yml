@@ -16,6 +16,7 @@ services:
       - bot
     volumes:
       - ./docker/redis/redis.conf:/redis.conf
+      - redis_data:/data
     command: [ "redis-server", "/redis.conf" ]
   bot:
     image: bakhus-bot
@@ -28,3 +29,5 @@ services:
       - bot
 networks:
   bot:
+volumes:
+  redis_data:
