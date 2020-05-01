@@ -94,7 +94,7 @@ class BeerBot(LoggerMixin):
         user_message: str = update.message.text
         self.logger.info(f"Search {user_message}")
         beer_name: str = user_message.replace("/search ", "")
-        beers: BeerList = self._client.search_beer(beer_name)
+        beers: BeerList = self._client.search_item(beer_name, search_type="beer")
         if len(beers) > 1:
             self._show_options(update, context, beers)
         elif len(beers) == 1:

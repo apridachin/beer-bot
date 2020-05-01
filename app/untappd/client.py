@@ -1,12 +1,9 @@
-import json
 from typing import TypeVar, Literal
-from dataclasses import asdict
 
 import asyncio
 from aiohttp.web import HTTPException
-from redis.exceptions import RedisError
 
-from app.entities import Beer, Brewery
+from app.entities import Brewery
 from app.logging import LoggerMixin
 from .scraper import UntappdScraper
 from .api import UntappdAPI
@@ -25,6 +22,7 @@ class UntappdClient(LoggerMixin):
         self._cache = cache
 
     def perform_action(self, action_name, default_result, *args, **kwargs):
+        """Get item by api of by scraping"""
         api_action = getattr(self._api, action_name)
         scrapper_action = getattr(self._scraper, action_name)
         result = default_result
@@ -35,24 +33,18 @@ class UntappdClient(LoggerMixin):
         finally:
             return result
 
-    def search_beer(self, beer_name: str):
-        """Performs searching beers by name"""
-        return self.perform_action("search_beer", [], beer_name)
-
-    def search_brewery(self, brewery_name: str):
-        """Performs searching beers by name"""
-        return self.perform_action("search_brewery", [], brewery_name)
+    def search_item(self, query: str, search_type: TItem):
+        """Performs searching items by name"""
+        return self.perform_action(f"search_{search_type}", [], query)
 
     def get_item(self, item_id: int, item_type: TItem):
+        """Performs getting items by id with checking cache"""
         result = None
         try:
             key = f"{item_type}_{item_id}"
-            result = self.get_from_cache(key)
+            result = self._cache.get_from_cache(key)
             if result is None:
                 result = self.get_from_api(item_id, item_type)
-        except RedisError as e:
-            self.logger.error(f"Can't connect to redis cache: {e}")
-            result = self.get_from_api(item_id, item_type)
         except HTTPException:
             self.logger.error(f"Can't get {item_type} {item_id}")
         finally:
@@ -62,52 +54,11 @@ class UntappdClient(LoggerMixin):
         return self.perform_action("get_brewery_by_beer", None, beer_id)
 
     def get_from_api(self, item_id: int, item_type: TItem):
+        """Get item from API with setting cache"""
         self.logger.info(f"Try to get {item_type} from api {item_id}")
         result = self.perform_action(f"get_{item_type}", None, item_id)
-        try:
-            key = f"{item_type}_{item_id}"
-            success = self.set_to_cache(key, result)
-            self.logger.info(f"Set redis cache {item_type} {item_id} {success}")
-        except RedisError as e:
-            self.logger.error(f"Can't connect to redis {e}")
-        finally:
-            return result
-
-    def get_from_cache(self, key: str):
-        self.logger.info(f"Check redis cache {key}")
-        result = None
-        response = self._cache.get(key)
-        if response is not None:
-            self.logger.info(f"Try to parse redis response {response}")
-            if key.startswith("beer"):
-                result = self.prepare_beer(response)
-            elif key.startswith("brewery"):
-                result = self.prepare_brewery(response)
-            else:
-                result = response
-            self.logger.info(f"Parse redis response successfully {result}")
-        return result
-
-    def set_to_cache(self, key, value):
-        cache_value = json.dumps(asdict(value))
-        return self._cache.set(key, cache_value)
-
-    def prepare_beer(self, response) -> Beer:
-        beer = json.loads(response)
-        brewery = beer["brewery"]
-        similar = beer["similar"]
-        result = Beer(**beer)
-        result.set_brewery(brewery)
-        result.set_similar(similar)
-        return result
-
-    def prepare_brewery(self, response) -> Brewery:
-        brewery = json.loads(response)
-        location = brewery["location"]
-        contact = brewery["contact"]
-        result = Brewery(**brewery)
-        result.set_location(location)
-        result.set_contact(contact)
+        key = f"{item_type}_{item_id}"
+        self._cache.set_to_cache(key, result)
         return result
 
 
