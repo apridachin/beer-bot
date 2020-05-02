@@ -21,6 +21,7 @@ from app.logging import LoggerMixin
 from app.entities import Brewery, Beer, Contact, BeerList
 from app.settings import TELEGRAM_TOKEN, admins, devs
 from app.utils.build_menu import build_menu
+from app.utils.restrict import restrict
 from app.utils.send_action import send_typing_action
 
 TBeerBot = TypeVar("TBeerBot", bound="BeerBot")
@@ -40,9 +41,7 @@ class BeerBot(LoggerMixin):
         self.search_handler: CommandHandler = CommandHandler("search", self._search_beer)
         self.select_info_handler: CallbackQueryHandler = CallbackQueryHandler(self._select_info, pattern="info")
         self.select_beer_handler: CallbackQueryHandler = CallbackQueryHandler(self._select_beer, pattern="beer")
-        self.restart_handler: CommandHandler = CommandHandler(
-            "restart", self.restart, filters=Filters.user(username=admins)
-        )
+        self.restart_handler: CommandHandler = CommandHandler("restart", self.restart)
         self.unknown_handler: MessageHandler = MessageHandler(Filters.command, self._unknown)
 
         # Registered handlers
@@ -65,6 +64,7 @@ class BeerBot(LoggerMixin):
         os.execl(sys.executable, sys.executable, *sys.argv)
         self.logger.info("Bot has been restarted")
 
+    @restrict(admins)
     def restart(self, update: Update) -> None:
         """Public method to restart a bot"""
         update.message.reply_text("Bot is restarting... ♻️")

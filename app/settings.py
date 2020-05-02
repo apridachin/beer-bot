@@ -9,6 +9,7 @@ UNTAPPD_ID = os.getenv("UNTAPPD_ID")
 UNTAPPD_TOKEN = os.getenv("UNTAPPD_TOKEN")
 
 REDIS_URL = os.getenv("REDIS_URL")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 ADMINS = os.getenv("ADMINS")
@@ -17,4 +18,4 @@ DEVS = os.getenv("DEVS")
 admins = ADMINS.split(",") if ADMINS else []
 devs = list(map(lambda x: int(x), DEVS)) if DEVS else []
 
-__all__ = ["TELEGRAM_TOKEN", "UNTAPPD_ID", "UNTAPPD_TOKEN", "admins", "devs", "REDIS_URL"]
+__all__ = ["TELEGRAM_TOKEN", "UNTAPPD_ID", "UNTAPPD_TOKEN", "admins", "devs", "REDIS_URL", "REDIS_PASSWORD"]

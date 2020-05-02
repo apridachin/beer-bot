@@ -17,7 +17,9 @@ services:
     volumes:
       - ./docker/redis/redis.conf:/redis.conf
       - redis_data:/data
-    command: [ "redis-server", "/redis.conf" ]
+    env_file:
+      - .env
+    command: redis-server --requirepass REDIS_PASSWORD
   bot:
     image: bakhus-bot
     command: python run.py
