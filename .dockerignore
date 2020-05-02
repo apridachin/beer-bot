@@ -1,0 +1,5 @@
+*
+!.env
+!app/
+!requirements/
+!run.py

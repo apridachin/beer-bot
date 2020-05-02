@@ -17,6 +17,7 @@ class LoggerMixin:
         handler.setFormatter(formatter)
         self.logger.handlers = []
         self.logger.addHandler(handler)
+        self.logger.propagate = False
 
 
 __all__ = ["init_log", "LoggerMixin"]

@@ -13,7 +13,7 @@ build_bot_image(){
 }
 
 run_bot_container(){
-  docker run --name bakhus-bot $bot
+  docker run --rm --name bakhus-bot $bot
 }
 
 run_redis_container(){
