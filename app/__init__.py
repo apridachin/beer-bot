@@ -9,7 +9,7 @@ from app.untappd.cache import RedisCache
 
 logging.init_log()
 
-redis_client = redis.Redis(host=settings.REDIS_URL, port=6379)
+redis_client = redis.Redis(host=settings.REDIS_URL, port=6379)  # type: ignore
 
 untapped_scrapper = UntappdScraper(timeout=10)
 untappd_api = UntappdAPI()

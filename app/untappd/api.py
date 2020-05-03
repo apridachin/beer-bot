@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 from app.logging import LoggerMixin
 from app.settings import UNTAPPD_ID, UNTAPPD_TOKEN
 from app.utils.fetch import async_get
@@ -12,7 +14,7 @@ class UntappdAPI(LoggerMixin):
     client_token = UNTAPPD_TOKEN
     auth_params = f"client_id={client_id}&client_secret={client_token}"
 
-    async def search_beer(self, query, limit: int = 1) -> BeerList:
+    async def search_beer(self, query, limit: int = 1) -> List[Optional[Beer]]:
         url = f"{UntappdAPI.base_url}/search/beer?q={query}&{UntappdAPI.auth_params}"
         response = await async_get(url)
         beers = await self._parse_beer_search(response, limit=limit)
@@ -24,7 +26,7 @@ class UntappdAPI(LoggerMixin):
         breweries = self._parse_brewery_search(response, limit=1)
         return breweries
 
-    async def get_beer(self, beer_id) -> Beer:
+    async def get_beer(self, beer_id) -> Optional[Beer]:
         url = f"{UntappdAPI.base_url}/beer/info/{beer_id}?{UntappdAPI.auth_params}"
         response = await async_get(url)
         raw_beer = response["response"]["beer"]
@@ -40,11 +42,11 @@ class UntappdAPI(LoggerMixin):
 
     async def get_brewery_by_beer(self, beer_id: int) -> Brewery:
         beer = await self.get_beer(beer_id)
-        brewery_id = beer.brewery.id
+        brewery_id = beer.brewery.id if isinstance(beer, Beer) and isinstance(beer.brewery, BreweryShort) else 0
         brewery = await self.get_brewery(brewery_id)
         return brewery
 
-    async def _parse_beer_search(self, response, limit: int = 3) -> BeerList:
+    async def _parse_beer_search(self, response, limit: int = 3) -> List[Optional[Beer]]:
         result = []
         try:
             self.logger.info(f"Try to parse response {response}")
@@ -53,11 +55,11 @@ class UntappdAPI(LoggerMixin):
                 beer_id = beer["beer"]["bid"]
                 item = await self.get_beer(beer_id)
                 result.append(item)
-        except AttributeError as e:
-            self.logger.error(f"Can not parse response, error {e}")
-        finally:
             self.logger.info(f"Successfully parse response {response}")
             return result
+        except AttributeError as e:
+            self.logger.error(f"Can not parse response, error {e}")
+            return []
 
     async def _parse_brewery_search(self, response, limit: int = 3):
         result = []
@@ -68,14 +70,13 @@ class UntappdAPI(LoggerMixin):
                 brewery_id = brewery["brewery_id"]
                 item = self.get_brewery(brewery_id)
                 result.append(item)
-        except AttributeError as e:
-            self.logger.error(f"Can not parse response, error {e}")
-        finally:
             self.logger.info(f"Successfully parse response {response}")
             return result
+        except AttributeError as e:
+            self.logger.error(f"Can not parse response, error {e}")
+            return []
 
-    def _parse_beer(self, raw_beer) -> Beer:
-        result = None
+    def _parse_beer(self, raw_beer) -> Optional[Beer]:
         try:
             self.logger.info(f"Try to parse response {raw_beer}")
             brewery = self._parse_beer_brewery(raw_beer["brewery"])
@@ -92,38 +93,36 @@ class UntappdAPI(LoggerMixin):
                 brewery=brewery,
                 similar=similar,
             )
-        except AttributeError as e:
-            self.logger.error(f"Can not parse response, error {e}")
-        finally:
             self.logger.info(f"Successfully parse response {result}")
             return result
+        except AttributeError as e:
+            self.logger.error(f"Can not parse response, error {e}")
+            return None
 
-    def _parse_beer_brewery(self, raw_brewery) -> BreweryShort:
-        result = None
+    def _parse_beer_brewery(self, raw_brewery) -> Optional[BreweryShort]:
         try:
             self.logger.info(f"Try to parse beer brewery {raw_brewery}")
-            result = BreweryShort(id=raw_brewery["brewery_id"], name=raw_brewery["brewery_name"],)
-        except AttributeError as e:
-            self.logger.error(f"Can not parse beer brewery, error: {e}")
-        finally:
+            result = BreweryShort(id=raw_brewery["brewery_id"], name=raw_brewery["brewery_name"])
             self.logger.info(f"Successfully parse beer brewery {result}")
             return result
+        except AttributeError as e:
+            self.logger.error(f"Can not parse beer brewery, error: {e}")
+            return None
 
-    def _parse_similar(self, similar: []) -> SimilarList:
+    def _parse_similar(self, similar: List) -> SimilarList:
         result = []
         try:
             for s in similar:
                 self.logger.info(f"Try to parse beer similar {s}")
                 item = Similar(id=s["beer"]["bid"], name=s["beer"]["beer_name"])
                 result.append(item)
-        except AttributeError as e:
-            self.logger.error(f"Can not parse response, error: {e}")
-        finally:
             self.logger.info(f"Successfully parse similar beers {result}")
             return result
+        except AttributeError as error:
+            self.logger.error(f"Can not parse response, error: {error}")
+            return []
 
     def _parse_brewery(self, raw_brewery):
-        result = None
         try:
             self.logger.info(f"Try to parse brewery {raw_brewery}")
             raw_contact = raw_brewery["contact"]
@@ -141,8 +140,8 @@ class UntappdAPI(LoggerMixin):
                 raters=raw_brewery["rating"]["count"],
                 description=raw_brewery["brewery_description"],
             )
-        except AttributeError as e:
-            self.logger.error(f"Can not parse response, error {e}")
-        finally:
             self.logger.info(f"Successfully parse brewery {result}")
             return result
+        except AttributeError as error:
+            self.logger.error(f"Can not parse response, error {error}")
+            return None

@@ -18,7 +18,7 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 
 from app.logging import LoggerMixin
-from app.entities import Brewery, Beer, Contact, BeerList
+from app.entities import Brewery, Beer, Contact, BeerList, BreweryShort
 from app.settings import TELEGRAM_TOKEN, admins, devs
 from app.utils.build_menu import build_menu
 from app.utils.restrict import restrict
@@ -154,9 +154,9 @@ class BeerBot(LoggerMixin):
         query: CallbackQuery = update.callback_query
         beer_id = int(query.data.replace("beer_", ""))
         try:
-            beer = self.get_beer_context(context, beer_id)
+            beer: Beer = self.get_beer_context(context, beer_id)
             if beer is None:
-                beer: Beer = self._client.get_item(beer_id, item_type="beer")
+                beer = self._client.get_item(beer_id, item_type="beer")
             self._send_beer(update, context, beer)
             self.logger.info(f"Beer was selected {beer_id}")
         except HTTPError:
@@ -278,7 +278,7 @@ class BeerBot(LoggerMixin):
         ibu = beer.ibu
         style = beer.style
         desc = beer.description
-        brewery = beer.brewery.name
+        brewery = beer.brewery.name if isinstance(beer, Beer) and isinstance(beer.brewery, BreweryShort) else 0
         rating = beer.rating
         raters = beer.raters
 
