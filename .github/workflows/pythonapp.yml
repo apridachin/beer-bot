@@ -25,13 +25,18 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements/common.txt ]; then pip install -r requirements/common.txt; fi
         if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
-    - name: Lint with flake8
+    - name: Check code formatting with black
       run: |
-        # stop the build if there are Python syntax errors or undefined names
         python -m black ./app
-        python -m pylint ./app
-        python -m mypy ./app
-        python -m bandit ./app
-    - name: Test with pytest
+    - name: Lint code with pylint
+        run: |
+          python -m pylint ./app
+    - name: Static types check with mypy
+        run: |
+          python -m mypy ./app
+    - name: Static security check with bandit
+        run: |
+          python -m bandit ./app
+    - name: Test app with pytest
       run: |
         pytest -v ./app
