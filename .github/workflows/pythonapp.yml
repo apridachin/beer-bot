@@ -29,14 +29,14 @@ jobs:
       run: |
         python -m black ./app
     - name: Lint code with pylint
-        run: |
-          python -m pylint ./app
+      run: |
+        python -m pylint ./app
     - name: Static types check with mypy
-        run: |
-          python -m mypy ./app
+      run: |
+        python -m mypy ./app
     - name: Static security check with bandit
-        run: |
-          python -m bandit ./app
+      run: |
+        python -m bandit ./app
     - name: Test app with pytest
       run: |
         pytest -v ./app
