@@ -54,10 +54,10 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip
-            if [ -f requirements/common.txt ]; then pip install -r requirements/common.txt; fi
-            if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements/common.txt ]; then pip install -r requirements/common.txt; fi
+          if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
       - name: Test app with pytest
-          run: |
-            pytest -v ./app
+        run: |
+          pytest -v ./app
