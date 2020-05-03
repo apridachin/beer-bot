@@ -12,10 +12,9 @@ class TestUntappdScraper:
         print(result)
 
         assert result is not None
-        assert result.total is not None
-        assert len(result.entities) == 5
-        assert result.entities[0].id == 1569404
-        assert result.entities[0].name == "Lost In Spice"
+        assert len(result) == 5
+        assert result[0].id == 1569404
+        assert result[0].name == "Lost In Spice"
 
     def test_get_beer(self):
         scraper = UntappdScraper(timeout=10)

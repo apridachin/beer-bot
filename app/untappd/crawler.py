@@ -4,11 +4,13 @@ from scrapy.crawler import CrawlerProcess
 
 
 class UntappdSpider(scrapy.Spider):
+    """Crawler for untappd"""
+
     name = "untappd"
     allowed_domains = ["untappd.com"]
 
-    def __init__(self, options=None, *args, **kwargs):
-        super(UntappdSpider, self).__init__(*args, **kwargs)
+    def __init__(self, options=None, **kwargs):
+        super(UntappdSpider, self).__init__(**kwargs)
         query, search_type, sort = itemgetter("query", "type", "sort")(options)
         self.start_urls = [f"https://untappd.com/search?q={query}&type={search_type}&sort={sort}"]
 

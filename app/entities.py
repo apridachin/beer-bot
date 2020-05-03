@@ -43,10 +43,10 @@ class Brewery(BreweryShort):
     rating: float
     raters: int
 
-    def set_location(self, location: {}):
+    def set_location(self, location: dict):
         self.location = Location(**location)
 
-    def set_contact(self, contact: {}):
+    def set_contact(self, contact: dict):
         self.contact = Contact(**contact)
 
 
@@ -69,13 +69,13 @@ class Beer:
     rating: TNumber
     raters: float
     description: str
-    brewery: BreweryShort
+    brewery: Optional[BreweryShort]
     similar: SimilarList
 
-    def set_brewery(self, brewery: {}):
+    def set_brewery(self, brewery: dict):
         self.brewery = BreweryShort(**brewery)
 
-    def set_similar(self, similar: []):
+    def set_similar(self, similar: List):
         s_list = []
         for item in similar:
             s = Similar(**item)

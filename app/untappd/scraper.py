@@ -1,4 +1,5 @@
 import re
+from typing import Union, Optional, List
 
 from bs4 import BeautifulSoup
 
@@ -47,25 +48,25 @@ class UntappdScraper(LoggerMixin):
         result: SearchResult = self._parse_search_page(response)
         return result
 
-    def get_beer(self, beer_id: int) -> Beer:
+    def get_beer(self, beer_id: int) -> Optional[Beer]:
         """Performs getting beers by id"""
         url = f"{self.url}/beer/{beer_id}"
         response = self.request(url)
-        result: Beer = self._parse_beer_page(beer_id, response)
+        result = self._parse_beer_page(beer_id, response)
         return result
 
-    def get_brewery(self, brewery_id: int) -> Brewery:
+    def get_brewery(self, brewery_id: int) -> Optional[Brewery]:
         """Performs getting brewery by id"""
         url = f"{self.url}/brewery/{brewery_id}"
         response = self.request(url)
-        result: Brewery = self._parse_brewery_page(brewery_id, response)
+        result = self._parse_brewery_page(brewery_id, response)
         return result
 
-    def get_brewery_by_beer(self, beer_id: int) -> Brewery:
+    def get_brewery_by_beer(self, beer_id: int) -> Optional[Brewery]:
         """Performs getting brewery by beer id"""
         self.logger.info(f"get brewery by beer id {beer_id} request")
         beer = self.get_beer(beer_id)
-        brewery_id = beer.brewery.id
+        brewery_id = beer.brewery.id if isinstance(beer, Beer) and isinstance(beer.brewery, BreweryShort) else 0
         brewery = self.get_brewery(brewery_id)
         self.logger.info(f"get brewery by beer id {beer_id} response")
         return brewery
@@ -74,7 +75,7 @@ class UntappdScraper(LoggerMixin):
         """Crawling search results page by page"""
 
         html = BeautifulSoup(response, "html.parser")
-        search_result = []
+        search_result: List[Union[Optional[Beer], Optional[Brewery]]] = []
 
         try:
             results = html.find_all("div", class_="beer-item")
@@ -112,7 +113,7 @@ class UntappdScraper(LoggerMixin):
             self.logger.info(f"Search page for was parsed successfully")
         return search_result
 
-    def _parse_beer_page(self, beer_id, response) -> Beer:
+    def _parse_beer_page(self, beer_id, response) -> Optional[Beer]:
         """Perform parsing untappd beer page"""
         html = BeautifulSoup(response, "html.parser")
         beer = None
@@ -153,10 +154,9 @@ class UntappdScraper(LoggerMixin):
             self.logger.exception(e)
         else:
             self.logger.info(f"Page for beer {beer_id} was parsed successfully")
-
         return beer
 
-    def _parse_brewery_page(self, brewery_id: int, response) -> Brewery:
+    def _parse_brewery_page(self, brewery_id: int, response) -> Optional[Brewery]:
         """Perform parsing untappd brewery page"""
         html = BeautifulSoup(response, "html.parser")
         brewery = None
