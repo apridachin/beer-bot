@@ -25,7 +25,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/bakhus-bot/Dockerfile
-    command: python run.py
     volumes:
       - .:/code
     environment:
@@ -34,6 +33,7 @@ services:
       - redis
     networks:
       - bot
+    command: python ./run.py
 networks:
   bot:
 volumes:
