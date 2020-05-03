@@ -48,16 +48,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements/common.txt ]; then pip install -r requirements/common.txt; fi
-          if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
-      - name: Test app with pytest
-        run: |
-          pytest -v ./app
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements/common.txt ]; then pip install -r requirements/common.txt; fi
+        if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
+    - name: Test app with pytest
+      run: |
+        pytest -v ./app
