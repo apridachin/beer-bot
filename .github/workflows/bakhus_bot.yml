@@ -49,3 +49,9 @@ jobs:
     - name: Test app with pytest
       run: |
         pytest -v ./tests
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        UNTAPPD_ID: ${{ secrets.UNTAPPD_ID }}
+        UNTAPPD_TOKEN: ${{ secrets.UNTAPPD_TOKEN }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
